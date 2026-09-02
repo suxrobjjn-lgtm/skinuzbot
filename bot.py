@@ -35,17 +35,33 @@ async def start_web_server():
     await site.start()
 
 async def keep_alive_pinger():
-    """Render serveri uyquga ketmasligi uchun har 10 daqiqada o'ziga o'zi so'rov (ping) yuboradi."""
-    url = "https://kino-bot-word.onrender.com/health"
-    await asyncio.sleep(60)  # Ishga tushgach 1 daqiqa kutamiz
+    """Render serveri uyquga ketmasligi uchun har 10 daqiqada so'rov (ping) yuboradi."""
+    port = int(os.getenv("PORT", 8080))
+    render_url = os.getenv("RENDER_EXTERNAL_URL", "https://kino-bot-word.onrender.com").rstrip("/")
+    health_url = f"{render_url}/health" if render_url.startswith("http") else None
+    local_url = f"http://127.0.0.1:{port}/health"
+
+    await asyncio.sleep(45)  # Ishga tushgach 45 soniya kutamiz
     while True:
         try:
             import aiohttp
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=15) as resp:
-                    logging.info(f"Keep-alive self-ping muvaffaqiyatli: {resp.status}")
+                # 1. Lokal serverni ping qilish
+                try:
+                    async with session.get(local_url, timeout=10) as resp:
+                        logging.info(f"Local health check OK: {resp.status}")
+                except Exception:
+                    pass
+
+                # 2. Render tashqi manzilini ping qilish
+                if health_url:
+                    try:
+                        async with session.get(health_url, timeout=15) as resp:
+                            logging.info(f"Keep-alive self-ping ({health_url}): {resp.status}")
+                    except Exception as e:
+                        logging.debug(f"Keep-alive ping xabari: {e}")
         except Exception as e:
-            logging.debug(f"Keep-alive ping xabari: {e}")
+            logging.debug(f"Pinger xatosi: {e}")
         await asyncio.sleep(600)  # Har 10 daqiqada takrorlanadi
 
 async def main():

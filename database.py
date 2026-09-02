@@ -63,8 +63,46 @@ def init_db():
     for admin_id in ADMIN_IDS:
         cursor.execute("INSERT OR IGNORE INTO admins (user_id, full_name) VALUES (?, ?)", (admin_id, "Bosh Admin"))
 
+    # Boshlang'ich kanallarni tekshirib kiritish
+    cursor.execute("SELECT COUNT(*) FROM channels")
+    if cursor.fetchone()[0] == 0:
+        default_channels = [
+            ("@kino_comfy_gr", "https://t.me/kino_comfy_gr", "KINO comfy")
+        ]
+        for ch_id, ch_url, title in default_channels:
+            cursor.execute("INSERT OR IGNORE INTO channels (channel_id, channel_url, title) VALUES (?, ?, ?)", (ch_id, ch_url, title))
+
     conn.commit()
     conn.close()
+
+def get_db_channels():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT channel_id, channel_url, title FROM channels ORDER BY id ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def add_db_channel(channel_id: str, channel_url: str, title: str) -> bool:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT OR REPLACE INTO channels (channel_id, channel_url, title) VALUES (?, ?, ?)", (channel_id.strip(), channel_url.strip(), title.strip()))
+        conn.commit()
+        success = True
+    except Exception:
+        success = False
+    conn.close()
+    return success
+
+def delete_db_channel(channel_id: str) -> bool:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM channels WHERE channel_id = ?", (channel_id.strip(),))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
 
 def set_setting(key: str, value: str):
     conn = sqlite3.connect(DB_PATH)

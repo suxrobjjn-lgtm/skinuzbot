@@ -21,7 +21,15 @@ if not BOT_TOKEN or BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN_HERE":
     print("OGOHLANTIRISH: .env fayliga haqiqiy Telegram Bot Token kiritilmagan!")
 
 def get_channels():
-    """Kanallar ro'yxatini .env dan o'qiydi"""
+    """Kanallar ro'yxatini ma'lumotlar bazasidan yoki .env dan o'qiydi"""
+    try:
+        import database as db
+        db_ch = db.get_db_channels()
+        if db_ch:
+            return db_ch
+    except Exception:
+        pass
+
     raw = os.getenv("CHANNELS", "@kino_comfy_gr|https://t.me/kino_comfy_gr|KINO comfy").strip()
     if not raw:
         return []
@@ -33,16 +41,23 @@ def get_channels():
     return channels
 
 def save_channels(channels: list):
-    """Kanallar ro'yxatini .env ga yozadi"""
+    """Kanallar ro'yxatini saqlaydi"""
     raw = ",".join(f"{ch[0]}|{ch[1]}|{ch[2]}" for ch in channels)
-    set_key(ENV_PATH, "CHANNELS", raw)
-    # runtime da ham yangilaymiz
+    try:
+        if os.path.exists(ENV_PATH):
+            set_key(ENV_PATH, "CHANNELS", raw)
+    except Exception:
+        pass
     os.environ["CHANNELS"] = raw
 
 def add_channel(channel_id: str, channel_url: str, title: str) -> bool:
     """Yangi kanal qo'shadi"""
+    try:
+        import database as db
+        db.add_db_channel(channel_id, channel_url, title)
+    except Exception:
+        pass
     channels = get_channels()
-    # Agar allaqachon borsa, yangilaymiz
     channels = [ch for ch in channels if ch[0] != channel_id.strip()]
     channels.append((channel_id.strip(), channel_url.strip(), title.strip()))
     save_channels(channels)
@@ -50,6 +65,11 @@ def add_channel(channel_id: str, channel_url: str, title: str) -> bool:
 
 def delete_channel(channel_id: str):
     """Kanal o'chiradi"""
+    try:
+        import database as db
+        db.delete_db_channel(channel_id)
+    except Exception:
+        pass
     channels = get_channels()
     channels = [ch for ch in channels if ch[0] != channel_id.strip()]
     save_channels(channels)
