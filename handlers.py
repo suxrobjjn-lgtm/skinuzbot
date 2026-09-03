@@ -1,6 +1,7 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ChatMemberUpdated
 from aiogram.filters import CommandStart, Command
+from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, JOIN_TRANSITION
 from keyboards import main_menu, get_subscription_keyboard, get_movie_keyboard
 import database as db
 import config
@@ -240,8 +241,46 @@ async def callback_show_latest(callback: CallbackQuery):
     await callback.answer()
 
 
+# ─────────────────────── Guruh xabarlarini tozalash (Kirish/Chiqish/Servis xabarlari) ───────────────────────
+@router.message(
+    F.chat.type.in_({"group", "supergroup"})
+    & (
+        F.new_chat_members
+        | F.left_chat_member
+        | F.pinned_message
+        | F.video_chat_started
+        | F.video_chat_ended
+        | F.video_chat_participants_invited
+    )
+)
+async def delete_group_service_messages(message: Message):
+    """Guruhdagi barcha servis xabarlarni (qo'shildi, chiqdi, qadaldi va h.k.) avtomatik o'chiradi."""
+    try:
+        await message.delete()
+    except Exception as e:
+        logging.debug(f"Guruh servis xabarini o'chirishda xatolik: {e}")
+
+
+@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
+async def bot_added_to_group(event: ChatMemberUpdated):
+    """Bot guruhga yangi qo'shilganda qisqa eslatma yuboradi."""
+    if event.chat.type in ["group", "supergroup"]:
+        try:
+            await event.bot.send_message(
+                chat_id=event.chat.id,
+                text=(
+                    "🤖 <b>Assalomu alaykum!</b>\n\n"
+                    "Men ushbu guruhda <b>kirish/chiqish va keraksiz servis xabarlarini avtomatik tozalab turaman</b>.\n\n"
+                    "⚡ <i>To'liq ishlashim uchun menga guruhda <b>Adminlik</b> va <b>'Xabarlarni o'chirish' (Delete messages)</b> huquqini bering!</i>"
+                ),
+                parse_mode="HTML"
+            )
+        except Exception:
+            pass
+
+
 # ─────────────────────── Barcha matn xabarlari (kino kodi / qidiruv) ───────────────────────
-@router.message(F.text)
+@router.message(F.chat.type == "private", F.text)
 async def process_user_query(message: Message, bot: Bot):
     query = message.text.strip()
     if query.startswith("/"):

@@ -37,7 +37,7 @@ async def start_web_server():
 async def keep_alive_pinger():
     """Render serveri uyquga ketmasligi uchun har 10 daqiqada so'rov (ping) yuboradi."""
     port = int(os.getenv("PORT", 8080))
-    render_url = os.getenv("RENDER_EXTERNAL_URL", "https://kino-bot-word.onrender.com").rstrip("/")
+    render_url = os.getenv("RENDER_EXTERNAL_URL", "https://kino-bot-womd.onrender.com").rstrip("/")
     health_url = f"{render_url}/health" if render_url.startswith("http") else None
     local_url = f"http://127.0.0.1:{port}/health"
 
