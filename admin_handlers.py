@@ -70,7 +70,10 @@ async def waiting_video_got_text(message: Message, state: FSMContext):
     await message.answer("⚠️ Iltimos, <b>video fayl yuboring</b> yoki ❌ Bekor qilish bosing.", parse_mode="HTML")
 
 @admin_router.message(AdminStates.waiting_for_video, F.video | F.document)
+@admin_router.message(F.chat.type == "private", F.video | F.document)
 async def receive_video(message: Message, state: FSMContext):
+    if not db.is_admin(message.from_user.id):
+        return
     if message.video:
         file_id = message.video.file_id
     elif message.document:
@@ -80,7 +83,7 @@ async def receive_video(message: Message, state: FSMContext):
         return
     await state.update_data(file_id=file_id)
     await state.set_state(AdminStates.waiting_for_code)
-    await message.answer("✅ Video qabul qilindi!\n\n<b>Kino kodini kiriting</b> (masalan: <code>101</code>):", parse_mode="HTML")
+    await message.answer("✅ <b>Video qabul qilindi!</b>\n\n<b>Kino kodini kiriting</b> (masalan: <code>101</code>):", reply_markup=cancel_keyboard, parse_mode="HTML")
 
 @admin_router.message(AdminStates.waiting_for_code, F.text)
 async def receive_code(message: Message, state: FSMContext):
@@ -114,7 +117,11 @@ async def receive_description(message: Message, state: FSMContext, bot: Bot):
     data = await state.get_data()
 
     msg_id = 0
-    # Kinoni to'g'ridan-to'g'ri baza guruhiga yuborish (.env dagi BAZA_ID)
+    channel_sent = False
+    bot_info = await message.bot.get_me()
+    deep_link = f"https://t.me/{bot_info.username}?start={data['code']}"
+
+    # 1. Kinoni to'g'ridan-to'g'ri baza guruhiga yuborish (.env dagi BAZA_ID)
     if config.BAZA_ID:
         try:
             caption = f"🎬 <b>{data['title']}</b>\n\n🔢 Kodi: <code>{data['code']}</code>"
@@ -131,17 +138,52 @@ async def receive_description(message: Message, state: FSMContext, bot: Bot):
         except Exception as e:
             logging.error(f"Guruhga yuborishda xatolik: {e}")
 
+    # 2. Kinoni avtomatik tarzda @kino_comfy_gr kanaliga yuborish
+    try:
+        ch_caption = (
+            f"🎬 <b>{data['title']}</b>\n\n"
+            f"🔢 <b>Kino kodi:</b> <code>{data['code']}</code>\n"
+        )
+        if description:
+            ch_caption += f"\n📝 {description}\n"
+        ch_caption += (
+            f"\n🍿 <b>Filmni to'liq tomosha qilish:</b>\n"
+            f"👉 <a href=\"{deep_link}\">@{bot_info.username}</a>\n\n"
+            f"#{data['code']} #kino #premyera"
+        )
+        try:
+            await bot.send_video(chat_id="@kino_comfy_gr", video=data["file_id"], caption=ch_caption, parse_mode="HTML")
+            channel_sent = True
+        except Exception:
+            await bot.send_document(chat_id="@kino_comfy_gr", document=data["file_id"], caption=ch_caption, parse_mode="HTML")
+            channel_sent = True
+    except Exception as e:
+        logging.error(f"@kino_comfy_gr ga yuborishda xatolik: {e}")
+
     success = db.add_movie(data["code"], data["title"], data["file_id"], description, msg_id)
     await state.clear()
     if success:
-        bot_info = await message.bot.get_me()
-        deep_link = f"https://t.me/{bot_info.username}?start={data['code']}"
-        baza_note = "\n📁 <i>Kino baza guruhiga ham saqlandi!</i>" if msg_id > 0 else "\n⚠️ <i>Baza guruhiga yuborilmadi (BAZA_ID sozlanmagan)</i>"
+        baza_note = "\n📁 <i>Kino baza guruhiga saqlandi!</i>" if msg_id > 0 else ""
+        ch_note = "\n📢 <i>@kino_comfy_gr kanaliga muvaffaqiyatli joylandi!</i>" if channel_sent else "\n⚠️ <i>Kanalga yuborishda xatolik (bot kanalda admin ekanini tekshiring)</i>"
+        
+        ig_text = (
+            f"🎬 <b>{data['title']}</b>\n\n"
+            f"🍿 <b>FILMNI O'ZBEK TILIDA TO'LIQ TOMOSHA QILISH:</b>\n"
+            f"1️⃣ Profilimizdagi havolaga kiring (Telegram bot)\n"
+            f"2️⃣ Botga kirib <b>{data['code']}</b> kodini yuboring! 📲\n\n"
+            f"🤖 <b>Telegram botimiz:</b> @{bot_info.username}\n\n"
+            f"#kinolar #uzbekkino #kinotavsiya #filmlar #premyera #kino2025 #reelsuzb"
+        )
+        
         await message.answer(
             f"✅ <b>Kino muvaffaqiyatli qo'shildi!</b>\n\n"
             f"🎬 Nom: <b>{data['title']}</b>\n"
             f"🔢 Kod: <code>{data['code']}</code>\n"
-            f"🔗 Havola: {deep_link}{baza_note}",
+            f"🔗 Havola: {deep_link}{baza_note}{ch_note}\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📸 <b>INSTAGRAM UCHUN TAYYOR MATN:</b>\n\n"
+            f"<code>{ig_text}</code>\n\n"
+            f"<i>(Matn ustiga bossangiz, avtomatik nusxalanadi)</i>",
             reply_markup=admin_menu, parse_mode="HTML"
         )
     else:
