@@ -8,7 +8,7 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 load_dotenv(ENV_PATH)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8794577340:AAFSE5BQIolYxfrqNfiGcszWgsEbs1xn3L0").strip()
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8831392374:AAGL9Ks0X31ZLgmfKnsMySwpzd74AF0kLLM").strip()
 ADMIN_ID = os.getenv("ADMIN_ID", "7909677265").strip()
 BAZA_ID = os.getenv("BAZA_ID", "-1004294509106").strip()
 
