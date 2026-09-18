@@ -856,8 +856,22 @@ async def main():
         )
     except Exception as e:
         logging.warning(f"Menu button xatosi: {e}")
+
+    async def keep_alive_ping():
+        import aiohttp
+        while True:
+            await asyncio.sleep(480) # har 8 daqiqada Render uxlamasligi uchun ping
+            try:
+                if WEB_APP_URL and "onrender.com" in WEB_APP_URL:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f"{WEB_APP_URL}/") as resp:
+                            pass
+            except Exception:
+                pass
+
+    asyncio.create_task(keep_alive_ping())
     print("✅ Telegram Bot polling boshlandi (@Skenuzbot)!")
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=["message", "callback_query", "chat_member", "my_chat_member"])
 
 if __name__ == "__main__":
     try:
