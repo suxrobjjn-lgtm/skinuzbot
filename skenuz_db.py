@@ -1,360 +1,530 @@
-import sqlite3
+"""
+skenuz_db.py - Universal Database Layer
+Lokal SQLite + Render PostgreSQL ikkalasini ham qo'llab-quvvatlaydi.
+DATABASE_URL muhit o'zgaruvchisi bo'lsa PostgreSQL, bo'lmasa SQLite ishlatiladi.
+"""
 import os
 import time
 
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+# --- PostgreSQL yoki SQLite tanlash ---
+if DATABASE_URL and "postgres" in DATABASE_URL:
+    import psycopg2
+    import psycopg2.extras
+    USE_PG = True
+else:
+    import sqlite3
+    USE_PG = False
+
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "skenuz.db")
 
+
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if USE_PG:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        return conn
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+
+def ph(n=1):
+    """Placeholder: SQLite uchun ?, PostgreSQL uchun %s"""
+    if USE_PG:
+        return ", ".join(["%s"] * n) if n > 1 else "%s"
+    else:
+        return ", ".join(["?"] * n) if n > 1 else "?"
+
+
+def phs(fields):
+    """SET placeholders: field=? yoki field=%s"""
+    sep = "%s" if USE_PG else "?"
+    return ", ".join([f"{f}={sep}" for f in fields])
+
+
+def _row_to_dict(row):
+    if row is None:
+        return None
+    if USE_PG:
+        return dict(row)
+    return dict(row)
+
+
+def _fetchall(cursor):
+    rows = cursor.fetchall()
+    return [_row_to_dict(r) for r in rows]
+
+
+def _q(sql):
+    """SQLite ? ni PostgreSQL %s ga almashtiradi"""
+    if USE_PG:
+        return sql.replace("?", "%s")
+    return sql
+
 
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Foydalanuvchilar jadvali
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tg_id INTEGER UNIQUE NOT NULL,
-        first_name TEXT,
-        username TEXT,
-        balance REAL DEFAULT 0.00,
-        trade_url TEXT DEFAULT '',
-        ref_by INTEGER DEFAULT 0,
-        ref_count INTEGER DEFAULT 0,
-        total_opened INTEGER DEFAULT 0,
-        last_daily INTEGER DEFAULT 0,
-        phone TEXT DEFAULT '',
-        latitude REAL DEFAULT 0.0,
-        longitude REAL DEFAULT 0.0,
-        is_registered INTEGER DEFAULT 0,
-        created_at INTEGER DEFAULT (strftime('%s', 'now'))
-    )
-    """)
+    if USE_PG:
+        # PostgreSQL uchun jadvallar
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            tg_id BIGINT UNIQUE NOT NULL,
+            first_name TEXT DEFAULT '',
+            username TEXT DEFAULT '',
+            balance REAL DEFAULT 0.00,
+            trade_url TEXT DEFAULT '',
+            ref_by BIGINT DEFAULT 0,
+            ref_count INTEGER DEFAULT 0,
+            total_opened INTEGER DEFAULT 0,
+            last_daily BIGINT DEFAULT 0,
+            phone TEXT DEFAULT '',
+            latitude REAL DEFAULT 0.0,
+            longitude REAL DEFAULT 0.0,
+            is_registered INTEGER DEFAULT 0,
+            welcome_reward_claimed INTEGER DEFAULT 0,
+            reward_choice TEXT DEFAULT '',
+            reward_card_num TEXT DEFAULT '',
+            reward_passport_data TEXT DEFAULT '',
+            created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT
+        )
+        """)
 
-    # Mavjud DB uchun xavfsiz ustun qo'shish (migratsiya)
-    for col, col_type in [
-        ("phone", "TEXT DEFAULT ''"),
-        ("latitude", "REAL DEFAULT 0.0"),
-        ("longitude", "REAL DEFAULT 0.0"),
-        ("is_registered", "INTEGER DEFAULT 0"),
-        ("welcome_reward_claimed", "INTEGER DEFAULT 0"),
-        ("reward_choice", "TEXT DEFAULT ''"),
-        ("reward_card_num", "TEXT DEFAULT ''"),
-        ("reward_passport_data", "TEXT DEFAULT ''")
-    ]:
-        try:
-            cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
-        except Exception:
-            pass
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id SERIAL PRIMARY KEY,
+            user_tg_id BIGINT NOT NULL,
+            skin_id INTEGER NOT NULL,
+            skin_name TEXT NOT NULL,
+            skin_price REAL NOT NULL,
+            skin_image TEXT NOT NULL,
+            skin_rarity TEXT NOT NULL,
+            skin_color TEXT NOT NULL,
+            is_sold INTEGER DEFAULT 0,
+            is_withdrawn INTEGER DEFAULT 0,
+            created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT
+        )
+        """)
 
-    # 2. Foydalanuvchi inventari (yutilgan skinlar)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS inventory (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_tg_id INTEGER NOT NULL,
-        skin_id INTEGER NOT NULL,
-        skin_name TEXT NOT NULL,
-        skin_price REAL NOT NULL,
-        skin_image TEXT NOT NULL,
-        skin_rarity TEXT NOT NULL,
-        skin_color TEXT NOT NULL,
-        is_sold INTEGER DEFAULT 0,
-        is_withdrawn INTEGER DEFAULT 0,
-        created_at INTEGER DEFAULT (strftime('%s', 'now'))
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS drops_history (
+            id SERIAL PRIMARY KEY,
+            user_name TEXT NOT NULL,
+            skin_name TEXT NOT NULL,
+            skin_price REAL NOT NULL,
+            skin_image TEXT NOT NULL,
+            skin_color TEXT NOT NULL,
+            case_name TEXT NOT NULL,
+            created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT
+        )
+        """)
 
-    # 3. Ochilgan keyslar tarixi (Live Drop uchun)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS drops_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_name TEXT NOT NULL,
-        skin_name TEXT NOT NULL,
-        skin_price REAL NOT NULL,
-        skin_image TEXT NOT NULL,
-        skin_color TEXT NOT NULL,
-        case_name TEXT NOT NULL,
-        created_at INTEGER DEFAULT (strftime('%s', 'now'))
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS battles (
+            id SERIAL PRIMARY KEY,
+            creator_tg_id BIGINT NOT NULL,
+            creator_name TEXT NOT NULL,
+            case_id TEXT NOT NULL,
+            case_name TEXT NOT NULL,
+            case_price REAL NOT NULL,
+            opponent_tg_id BIGINT DEFAULT 0,
+            opponent_name TEXT DEFAULT '',
+            creator_drop_id INTEGER DEFAULT 0,
+            opponent_drop_id INTEGER DEFAULT 0,
+            winner_tg_id BIGINT DEFAULT 0,
+            status TEXT DEFAULT 'waiting',
+            created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT
+        )
+        """)
 
-    # 4. Case Battle xonalari
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS battles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        creator_tg_id INTEGER NOT NULL,
-        creator_name TEXT NOT NULL,
-        case_id TEXT NOT NULL,
-        case_name TEXT NOT NULL,
-        case_price REAL NOT NULL,
-        opponent_tg_id INTEGER DEFAULT 0,
-        opponent_name TEXT DEFAULT '',
-        creator_drop_id INTEGER DEFAULT 0,
-        opponent_drop_id INTEGER DEFAULT 0,
-        winner_tg_id INTEGER DEFAULT 0,
-        status TEXT DEFAULT 'waiting', -- waiting, finished
-        created_at INTEGER DEFAULT (strftime('%s', 'now'))
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS promo_codes (
+            code TEXT PRIMARY KEY,
+            amount REAL NOT NULL,
+            uses_left INTEGER DEFAULT 100
+        )
+        """)
 
-    # 5. Promokodlar
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS promo_codes (
-        code TEXT PRIMARY KEY,
-        amount REAL NOT NULL,
-        uses_left INTEGER DEFAULT 100
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bot_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_val TEXT
+        )
+        """)
 
-    # Boshlang'ich test promokodlar
-    cursor.execute("INSERT OR IGNORE INTO promo_codes (code, amount, uses_left) VALUES ('SKENUZ', 5.0, 999)")
-    cursor.execute("INSERT OR IGNORE INTO promo_codes (code, amount, uses_left) VALUES ('FREECASE', 2.0, 999)")
+        cursor.execute("INSERT INTO promo_codes (code, amount, uses_left) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                       ('SKENUZ', 5.0, 999))
+        cursor.execute("INSERT INTO promo_codes (code, amount, uses_left) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                       ('FREECASE', 2.0, 999))
+    else:
+        # SQLite uchun jadvallar
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tg_id INTEGER UNIQUE NOT NULL,
+            first_name TEXT,
+            username TEXT,
+            balance REAL DEFAULT 0.00,
+            trade_url TEXT DEFAULT '',
+            ref_by INTEGER DEFAULT 0,
+            ref_count INTEGER DEFAULT 0,
+            total_opened INTEGER DEFAULT 0,
+            last_daily INTEGER DEFAULT 0,
+            phone TEXT DEFAULT '',
+            latitude REAL DEFAULT 0.0,
+            longitude REAL DEFAULT 0.0,
+            is_registered INTEGER DEFAULT 0,
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+        )
+        """)
+
+        for col, col_type in [
+            ("phone", "TEXT DEFAULT ''"),
+            ("latitude", "REAL DEFAULT 0.0"),
+            ("longitude", "REAL DEFAULT 0.0"),
+            ("is_registered", "INTEGER DEFAULT 0"),
+            ("welcome_reward_claimed", "INTEGER DEFAULT 0"),
+            ("reward_choice", "TEXT DEFAULT ''"),
+            ("reward_card_num", "TEXT DEFAULT ''"),
+            ("reward_passport_data", "TEXT DEFAULT ''")
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
+            except Exception:
+                pass
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_tg_id INTEGER NOT NULL,
+            skin_id INTEGER NOT NULL,
+            skin_name TEXT NOT NULL,
+            skin_price REAL NOT NULL,
+            skin_image TEXT NOT NULL,
+            skin_rarity TEXT NOT NULL,
+            skin_color TEXT NOT NULL,
+            is_sold INTEGER DEFAULT 0,
+            is_withdrawn INTEGER DEFAULT 0,
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS drops_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_name TEXT NOT NULL,
+            skin_name TEXT NOT NULL,
+            skin_price REAL NOT NULL,
+            skin_image TEXT NOT NULL,
+            skin_color TEXT NOT NULL,
+            case_name TEXT NOT NULL,
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS battles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            creator_tg_id INTEGER NOT NULL,
+            creator_name TEXT NOT NULL,
+            case_id TEXT NOT NULL,
+            case_name TEXT NOT NULL,
+            case_price REAL NOT NULL,
+            opponent_tg_id INTEGER DEFAULT 0,
+            opponent_name TEXT DEFAULT '',
+            creator_drop_id INTEGER DEFAULT 0,
+            opponent_drop_id INTEGER DEFAULT 0,
+            winner_tg_id INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'waiting',
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS promo_codes (
+            code TEXT PRIMARY KEY,
+            amount REAL NOT NULL,
+            uses_left INTEGER DEFAULT 100
+        )
+        """)
+
+        cursor.execute("INSERT OR IGNORE INTO promo_codes (code, amount, uses_left) VALUES ('SKENUZ', 5.0, 999)")
+        cursor.execute("INSERT OR IGNORE INTO promo_codes (code, amount, uses_left) VALUES ('FREECASE', 2.0, 999)")
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bot_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_val TEXT
+        )
+        """)
 
     conn.commit()
     conn.close()
+
 
 def get_or_create_user(tg_id: int, first_name: str = "", username: str = "", ref_by: int = 0):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,))
+    cursor.execute(_q("SELECT * FROM users WHERE tg_id = ?"), (tg_id,))
     row = cursor.fetchone()
 
     if not row:
-        # Yangi birinchi marta kirgan foydalanuvchi balansi 0.00 bo'ladi
-        cursor.execute("""
-        INSERT INTO users (tg_id, first_name, username, balance, ref_by) 
-        VALUES (?, ?, ?, 0.00, ?)
-        """, (tg_id, first_name or "O'yinchi", username or "", ref_by))
-        
+        if USE_PG:
+            cursor.execute("""
+            INSERT INTO users (tg_id, first_name, username, balance, ref_by)
+            VALUES (%s, %s, %s, 0.00, %s)
+            ON CONFLICT (tg_id) DO NOTHING
+            """, (tg_id, first_name or "O'yinchi", username or "", ref_by))
+        else:
+            cursor.execute("""
+            INSERT INTO users (tg_id, first_name, username, balance, ref_by)
+            VALUES (?, ?, ?, 0.00, ?)
+            """, (tg_id, first_name or "O'yinchi", username or "", ref_by))
+
         if ref_by and ref_by != tg_id:
-            # Referal egasiga bonus 2.00$
-            cursor.execute("UPDATE users SET balance = balance + 2.00, ref_count = ref_count + 1 WHERE tg_id = ?", (ref_by,))
+            cursor.execute(_q("UPDATE users SET balance = balance + 2.00, ref_count = ref_count + 1 WHERE tg_id = ?"), (ref_by,))
 
         conn.commit()
-        cursor.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,))
+        cursor.execute(_q("SELECT * FROM users WHERE tg_id = ?"), (tg_id,))
         row = cursor.fetchone()
 
     conn.close()
-    return dict(row)
+    return _row_to_dict(row)
+
 
 def update_balance(tg_id: int, delta: float):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET balance = MAX(0, balance + ?) WHERE tg_id = ?", (delta, tg_id))
-    cursor.execute("SELECT balance FROM users WHERE tg_id = ?", (tg_id,))
+    if USE_PG:
+        cursor.execute("UPDATE users SET balance = GREATEST(0, balance + %s) WHERE tg_id = %s", (delta, tg_id))
+    else:
+        cursor.execute("UPDATE users SET balance = MAX(0, balance + ?) WHERE tg_id = ?", (delta, tg_id))
+    cursor.execute(_q("SELECT balance FROM users WHERE tg_id = ?"), (tg_id,))
     res = cursor.fetchone()
     conn.commit()
     conn.close()
-    return res[0] if res else 0.0
+    return res["balance"] if res else 0.0
+
 
 def add_drop_to_inventory(tg_id: int, skin: dict, case_name: str = ""):
     conn = get_connection()
     cursor = conn.cursor()
+    cursor.execute(
+        _q("INSERT INTO inventory (user_tg_id, skin_id, skin_name, skin_price, skin_image, skin_rarity, skin_color) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+        (tg_id, skin["id"], skin["name"], skin["price"], skin["image"], skin["rarity"], skin["color"])
+    )
+    if USE_PG:
+        cursor.execute("SELECT lastval()")
+    item_id = cursor.fetchone()[0] if USE_PG else cursor.lastrowid
 
-    # Inventarga qo'shish
-    cursor.execute("""
-    INSERT INTO inventory (user_tg_id, skin_id, skin_name, skin_price, skin_image, skin_rarity, skin_color)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (tg_id, skin["id"], skin["name"], skin["price"], skin["image"], skin["rarity"], skin["color"]))
-    item_id = cursor.lastrowid
-
-    # Ochilgan keyslar statistikasini oshirish
-    cursor.execute("UPDATE users SET total_opened = total_opened + 1 WHERE tg_id = ?", (tg_id,))
-
-    # Live drop lentasiga qo'shish
-    cursor.execute("SELECT first_name FROM users WHERE tg_id = ?", (tg_id,))
+    cursor.execute(_q("UPDATE users SET total_opened = total_opened + 1 WHERE tg_id = ?"), (tg_id,))
+    cursor.execute(_q("SELECT first_name FROM users WHERE tg_id = ?"), (tg_id,))
     u_row = cursor.fetchone()
-    user_name = u_row[0] if u_row else "O'yinchi"
+    user_name = u_row["first_name"] if u_row else "O'yinchi"
 
-    cursor.execute("""
-    INSERT INTO drops_history (user_name, skin_name, skin_price, skin_image, skin_color, case_name)
-    VALUES (?, ?, ?, ?, ?, ?)
-    """, (user_name, skin["name"], skin["price"], skin["image"], skin["color"], case_name))
+    cursor.execute(
+        _q("INSERT INTO drops_history (user_name, skin_name, skin_price, skin_image, skin_color, case_name) VALUES (?, ?, ?, ?, ?, ?)"),
+        (user_name, skin["name"], skin["price"], skin["image"], skin["color"], case_name)
+    )
 
     conn.commit()
     conn.close()
     return item_id
 
+
 def get_user_inventory(tg_id: int):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM inventory WHERE user_tg_id = ? AND is_sold = 0 ORDER BY id DESC", (tg_id,))
-    rows = cursor.fetchall()
+    cursor.execute(_q("SELECT * FROM inventory WHERE user_tg_id = ? AND is_sold = 0 ORDER BY id DESC"), (tg_id,))
+    rows = _fetchall(cursor)
     conn.close()
-    return [dict(r) for r in rows]
+    return rows
+
 
 def sell_inventory_item(tg_id: int, item_id: int):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM inventory WHERE id = ? AND user_tg_id = ? AND is_sold = 0", (item_id, tg_id))
-    item = cursor.fetchone()
+    cursor.execute(_q("SELECT * FROM inventory WHERE id = ? AND user_tg_id = ? AND is_sold = 0"), (item_id, tg_id))
+    item = _row_to_dict(cursor.fetchone())
     if not item:
         conn.close()
         return None, "Item topilmadi yoki allaqachon sotilgan"
 
     price = item["skin_price"]
-    cursor.execute("UPDATE inventory SET is_sold = 1 WHERE id = ?", (item_id,))
-    cursor.execute("UPDATE users SET balance = balance + ? WHERE tg_id = ?", (price, tg_id))
-    cursor.execute("SELECT balance FROM users WHERE tg_id = ?", (tg_id,))
-    new_bal = cursor.fetchone()[0]
-
+    cursor.execute(_q("UPDATE inventory SET is_sold = 1 WHERE id = ?"), (item_id,))
+    cursor.execute(_q("UPDATE users SET balance = balance + ? WHERE tg_id = ?"), (price, tg_id))
+    cursor.execute(_q("SELECT balance FROM users WHERE tg_id = ?"), (tg_id,))
+    new_bal = _row_to_dict(cursor.fetchone())["balance"]
     conn.commit()
     conn.close()
     return new_bal, None
 
+
 def sell_all_inventory(tg_id: int):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT SUM(skin_price) FROM inventory WHERE user_tg_id = ? AND is_sold = 0", (tg_id,))
-    total_price = cursor.fetchone()[0] or 0.0
+    cursor.execute(_q("SELECT SUM(skin_price) FROM inventory WHERE user_tg_id = ? AND is_sold = 0"), (tg_id,))
+    res = cursor.fetchone()
+    total_price = list(res.values())[0] if USE_PG else res[0]
+    total_price = total_price or 0.0
 
     if total_price > 0:
-        cursor.execute("UPDATE inventory SET is_sold = 1 WHERE user_tg_id = ? AND is_sold = 0", (tg_id,))
-        cursor.execute("UPDATE users SET balance = balance + ? WHERE tg_id = ?", (total_price, tg_id))
-    
-    cursor.execute("SELECT balance FROM users WHERE tg_id = ?", (tg_id,))
-    new_bal = cursor.fetchone()[0]
+        cursor.execute(_q("UPDATE inventory SET is_sold = 1 WHERE user_tg_id = ? AND is_sold = 0"), (tg_id,))
+        cursor.execute(_q("UPDATE users SET balance = balance + ? WHERE tg_id = ?"), (total_price, tg_id))
+
+    cursor.execute(_q("SELECT balance FROM users WHERE tg_id = ?"), (tg_id,))
+    new_bal = _row_to_dict(cursor.fetchone())["balance"]
     conn.commit()
     conn.close()
     return new_bal, total_price
 
+
 def get_live_drops(limit: int = 15):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM drops_history ORDER BY id DESC LIMIT ?", (limit,))
-    rows = cursor.fetchall()
+    cursor.execute(_q("SELECT * FROM drops_history ORDER BY id DESC LIMIT ?"), (limit,))
+    rows = _fetchall(cursor)
     conn.close()
-    return [dict(r) for r in rows]
+    return rows
+
 
 def update_trade_url(tg_id: int, url: str):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET trade_url = ? WHERE tg_id = ?", (url.strip(), tg_id))
+    cursor.execute(_q("UPDATE users SET trade_url = ? WHERE tg_id = ?"), (url.strip(), tg_id))
     conn.commit()
     conn.close()
     return True
 
+
 def claim_daily_bonus(tg_id: int):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT last_daily FROM users WHERE tg_id = ?", (tg_id,))
-    row = cursor.fetchone()
+    cursor.execute(_q("SELECT last_daily FROM users WHERE tg_id = ?"), (tg_id,))
+    row = _row_to_dict(cursor.fetchone())
     now = int(time.time())
-    if row and (now - row[0]) < 86400:
-        remaining = 86400 - (now - row[0])
+    if row and (now - (row.get("last_daily") or 0)) < 86400:
+        remaining = 86400 - (now - (row.get("last_daily") or 0))
         conn.close()
         return False, int(remaining)
 
-    # 1$ kunlik bonus
-    cursor.execute("UPDATE users SET balance = balance + 1.00, last_daily = ? WHERE tg_id = ?", (now, tg_id))
-    cursor.execute("SELECT balance FROM users WHERE tg_id = ?", (tg_id,))
-    new_bal = cursor.fetchone()[0]
+    cursor.execute(_q("UPDATE users SET balance = balance + 1.00, last_daily = ? WHERE tg_id = ?"), (now, tg_id))
+    cursor.execute(_q("SELECT balance FROM users WHERE tg_id = ?"), (tg_id,))
+    new_bal = _row_to_dict(cursor.fetchone())["balance"]
     conn.commit()
     conn.close()
     return True, new_bal
 
+
 def save_user_phone(tg_id: int, phone: str):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET phone = ? WHERE tg_id = ?", (phone, tg_id))
+    cursor.execute(_q("UPDATE users SET phone = ? WHERE tg_id = ?"), (phone, tg_id))
     conn.commit()
     conn.close()
+
 
 def has_user_phone(tg_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT phone FROM users WHERE tg_id = ?", (tg_id,))
-    row = cursor.fetchone()
+    cursor.execute(_q("SELECT phone FROM users WHERE tg_id = ?"), (tg_id,))
+    row = _row_to_dict(cursor.fetchone())
     conn.close()
     if not row:
         return False
-    return bool(row["phone"] and len(str(row["phone"]).strip()) > 3)
+    return bool(row.get("phone") and len(str(row["phone"]).strip()) > 3)
+
 
 def save_user_location(tg_id: int, lat: float, lon: float):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET latitude = ?, longitude = ?, is_registered = 1 WHERE tg_id = ?", (lat, lon, tg_id))
+    cursor.execute(_q("UPDATE users SET latitude = ?, longitude = ?, is_registered = 1 WHERE tg_id = ?"), (lat, lon, tg_id))
     conn.commit()
     conn.close()
+
 
 def is_user_registered(tg_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT is_registered, phone, latitude, longitude FROM users WHERE tg_id = ?", (tg_id,))
-    row = cursor.fetchone()
+    cursor.execute(_q("SELECT is_registered, phone, latitude, longitude FROM users WHERE tg_id = ?"), (tg_id,))
+    row = _row_to_dict(cursor.fetchone())
     conn.close()
     if not row:
         return False
-    has_phone = bool(row["phone"] and len(str(row["phone"]).strip()) > 3)
-    has_loc = bool(row["latitude"] != 0.0 or row["longitude"] != 0.0)
+    has_phone = bool(row.get("phone") and len(str(row["phone"]).strip()) > 3)
+    has_loc = bool((row.get("latitude") or 0.0) != 0.0 or (row.get("longitude") or 0.0) != 0.0)
     return bool(has_phone and has_loc)
+
 
 def get_all_registered_users():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE is_registered = 1 ORDER BY id DESC")
-    rows = cursor.fetchall()
+    rows = _fetchall(cursor)
     conn.close()
-    return [dict(r) for r in rows]
+    return rows
+
 
 def claim_welcome_reward(tg_id: int, reward_type: str, card_num: str = "", passport_data: str = ""):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT welcome_reward_claimed, balance FROM users WHERE tg_id = ?", (tg_id,))
-    row = cursor.fetchone()
-    if not row or row["welcome_reward_claimed"] == 1:
+    cursor.execute(_q("SELECT welcome_reward_claimed, balance FROM users WHERE tg_id = ?"), (tg_id,))
+    row = _row_to_dict(cursor.fetchone())
+    if not row or row.get("welcome_reward_claimed") == 1:
         conn.close()
         return False, "Siz allaqachon birinchi ro'yxatdan o'tish mukofotini olgansiz!"
 
-    # 30 000 so'm yoki 30 000 Olmos (30 000 UZS = 2.40 USD)
     if reward_type == "diamonds":
-        add_bal = 2.40 # 30 000 UZS qiymatidagi olmoslar (30 000 💎)
-        cursor.execute("""
-        UPDATE users 
-        SET balance = balance + ?, welcome_reward_claimed = 1, reward_choice = 'diamonds'
-        WHERE tg_id = ?
-        """, (add_bal, tg_id))
+        add_bal = 2.40
+        cursor.execute(
+            _q("UPDATE users SET balance = balance + ?, welcome_reward_claimed = 1, reward_choice = 'diamonds' WHERE tg_id = ?"),
+            (add_bal, tg_id)
+        )
     else:
-        cursor.execute("""
-        UPDATE users 
-        SET welcome_reward_claimed = 1, reward_choice = 'cash', reward_card_num = ?, reward_passport_data = ?
-        WHERE tg_id = ?
-        """, (card_num, passport_data, tg_id))
+        cursor.execute(
+            _q("UPDATE users SET welcome_reward_claimed = 1, reward_choice = 'cash', reward_card_num = ?, reward_passport_data = ? WHERE tg_id = ?"),
+            (card_num, passport_data, tg_id)
+        )
 
     conn.commit()
-    cursor.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,))
-    updated = cursor.fetchone()
+    cursor.execute(_q("SELECT * FROM users WHERE tg_id = ?"), (tg_id,))
+    updated = _row_to_dict(cursor.fetchone())
     conn.close()
-    return True, dict(updated) if updated else {}
+    return True, updated if updated else {}
+
 
 def set_setting(key: str, val: str):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS bot_settings (
-        setting_key TEXT PRIMARY KEY,
-        setting_val TEXT
-    )
-    """)
-    cursor.execute("INSERT OR REPLACE INTO bot_settings (setting_key, setting_val) VALUES (?, ?)", (key, str(val)))
+    if USE_PG:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bot_settings (setting_key TEXT PRIMARY KEY, setting_val TEXT)
+        """)
+        cursor.execute(
+            "INSERT INTO bot_settings (setting_key, setting_val) VALUES (%s, %s) ON CONFLICT (setting_key) DO UPDATE SET setting_val = EXCLUDED.setting_val",
+            (key, str(val))
+        )
+    else:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bot_settings (setting_key TEXT PRIMARY KEY, setting_val TEXT)
+        """)
+        cursor.execute("INSERT OR REPLACE INTO bot_settings (setting_key, setting_val) VALUES (?, ?)", (key, str(val)))
     conn.commit()
     conn.close()
+
 
 def get_setting(key: str, default: str = ""):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS bot_settings (
-        setting_key TEXT PRIMARY KEY,
-        setting_val TEXT
-    )
-    """)
-    cursor.execute("SELECT setting_val FROM bot_settings WHERE setting_key = ?", (key,))
-    row = cursor.fetchone()
-    conn.close()
-    return row["setting_val"] if row else default
-
-
+    try:
+        cursor.execute(_q("SELECT setting_val FROM bot_settings WHERE setting_key = ?"), (key,))
+        row = _row_to_dict(cursor.fetchone())
+        conn.close()
+        return row["setting_val"] if row else default
+    except Exception:
+        conn.close()
+        return default
