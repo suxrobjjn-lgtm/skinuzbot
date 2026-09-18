@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SKENUZ - CS2 Cases & Mini App</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div id="app">
+        <!-- TOP HEADER -->
+        <header class="header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">🎮</div>
+                <div class="user-meta">
+                    <span class="user-name" id="userName">Yuklanmoqda...</span>
+                    <span class="user-status">⚡ VIP CS2 O'yinchi</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="balance-badge" id="balanceBadge">
+                    <span class="coin-icon">💰</span>
+                    <span class="balance-val" id="userBalance">0.00</span>
+                    <span class="currency">$</span>
+                </div>
+                <button class="btn-deposit" id="btnDepositModal">+</button>
+            </div>
+        </header>
+
+        <!-- LIVE DROP TICKER -->
+        <div class="live-drop-container">
+            <div class="live-label">
+                <span class="pulsing-dot"></span> LIVE
+            </div>
+            <div class="live-track-wrapper">
+                <div class="live-track" id="liveTrack">
+                    <!-- Dinamik ravishda drop kartalari chiqadi -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAVIGATION TABS -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="cases">🎁 Keyslar</button>
+            <button class="nav-tab" data-tab="upgrader">⚡ Upgrader</button>
+            <button class="nav-tab" data-tab="battles">⚔️ Battle</button>
+            <button class="nav-tab" data-tab="inventory">🎒 Inventar (<span id="invCount">0</span>)</button>
+            <button class="nav-tab" data-tab="bonuses">💎 Bonuslar</button>
+        </nav>
+
+        <!-- TAB CONTENT: CASES (KEYSLAR) -->
+        <main class="tab-pane active" id="pane-cases">
+            <div class="banner">
+                <div class="banner-content">
+                    <h2>KUNLIK BEPUL KEYSNI OLING!</h2>
+                    <p>Har 24 soatda bepul keys oching va qimmatbaho CS2 skinlarini yutib oling.</p>
+                </div>
+                <div class="banner-glow"></div>
+            </div>
+
+            <div class="section-title">
+                <h3>Mavjud Keyslar</h3>
+                <span class="cases-count">5 ta keys</span>
+            </div>
+
+            <div class="cases-grid" id="casesGrid">
+                <!-- Javascript orqali to'ldiriladi -->
+            </div>
+        </main>
+
+        <!-- TAB CONTENT: UPGRADER -->
+        <main class="tab-pane" id="pane-upgrader">
+            <div class="upgrader-card">
+                <h3>⚡ Skin Upgrader</h3>
+                <p class="subtitle">O'z skinini tikib, 10x gacha qimmatroq skin yutib oling!</p>
+                
+                <div class="upgrader-arena">
+                    <!-- Chap: Foydalanuvchi skini -->
+                    <div class="upgrade-slot" id="upgradeSourceSlot">
+                        <span class="slot-title">Sizning Skiningiz</span>
+                        <div class="slot-box" id="upgradeSourceBox">
+                            <span class="placeholder">+ Inventardan tanlang</span>
+                        </div>
+                    </div>
+
+                    <!-- O'rtada: Ruletka diski va ehtimollik -->
+                    <div class="upgrade-wheel-wrapper">
+                        <div class="wheel-outer" id="upgradeWheel">
+                            <div class="wheel-pointer"></div>
+                            <div class="wheel-center">
+                                <span class="chance-val" id="upgradeChanceVal">0%</span>
+                                <span class="chance-lbl">YUTUQ IMKONI</span>
+                            </div>
+                        </div>
+                        <button class="btn-upgrade-action" id="btnRollUpgrade" disabled>UPGRADE QILISH</button>
+                    </div>
+
+                    <!-- O'ng: Maqsadli skin -->
+                    <div class="upgrade-slot" id="upgradeTargetSlot">
+                        <span class="slot-title">Yutib olinadigan skin</span>
+                        <div class="slot-box" id="upgradeTargetBox">
+                            <span class="placeholder">+ Maqsadni tanlang</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="target-skins-catalog">
+                    <h4>Mavjud Maqsadli Skinlar</h4>
+                    <div class="target-skins-list" id="targetSkinsList">
+                        <!-- Javascript orqali chiqariladi -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB CONTENT: BATTLES (KEYS JANGI) -->
+        <main class="tab-pane" id="pane-battles">
+            <div class="battles-header">
+                <h3>⚔️ Case Battle (PvP)</h3>
+                <button class="btn-create-battle" id="btnCreateBattle">+ Yangi Jang Yaratish</button>
+            </div>
+            <p class="subtitle">Raqibingiz bilan bir vaqtda keys oching. Kimga qimmatroq skin tushsa, ikkalasini ham oladi!</p>
+            
+            <div class="battles-list" id="battlesList">
+                <!-- Javascript orqali chiqariladi -->
+            </div>
+        </main>
+
+        <!-- TAB CONTENT: INVENTORY (INVENTAR) -->
+        <main class="tab-pane" id="pane-inventory">
+            <div class="inventory-controls">
+                <div class="inv-stats">
+                    <span>Jami qiymati: <strong id="invTotalValue">0.00$</strong></span>
+                </div>
+                <button class="btn-sell-all" id="btnSellAll">Hammasini Balansga Sotish</button>
+            </div>
+
+            <!-- Steam Trade Link bo'limi -->
+            <div class="tradelink-card">
+                <div class="tradelink-header">
+                    <span>🔗 Steam Trade URL (Skinni Steamga chiqarish uchun):</span>
+                </div>
+                <div class="tradelink-input-row">
+                    <input type="text" id="tradeUrlInput" placeholder="https://steamcommunity.com/tradeoffer/new/?partner=..." />
+                    <button id="btnSaveTradeUrl">Saqlash</button>
+                </div>
+            </div>
+
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Foydalanuvchi skinlari -->
+            </div>
+        </main>
+
+        <!-- TAB CONTENT: BONUSES & REFERRALS -->
+        <main class="tab-pane" id="pane-bonuses">
+            <div class="bonus-card">
+                <h3>🎁 Kunlik Bonus</h3>
+                <p>Har kuni kirib bepul 1.00$ balans oling!</p>
+                <button class="btn-claim-daily" id="btnClaimDaily">Bonusni Olish (1.00$)</button>
+            </div>
+
+            <div class="bonus-card">
+                <h3>👥 Do'stlarni Taklif Qiling (Referal)</h3>
+                <p>Har bir taklif qilingan do'stingiz uchun <strong>2.00$</strong> bepul balans olasiz!</p>
+                <div class="ref-link-box">
+                    <input type="text" id="refLinkInput" readonly value="" />
+                    <button id="btnCopyRef">Nusxalash</button>
+                </div>
+                <div class="ref-stats">
+                    Taklif qilingan do'stlar: <strong id="refCount">0</strong> ta
+                </div>
+            </div>
+
+            <div class="bonus-card">
+                <h3>🎟️ Promokod</h3>
+                <div class="promo-box">
+                    <input type="text" id="promoInput" placeholder="Kodni kiriting (masalan: SKENUZ)" />
+                    <button id="btnApplyPromo">Faollashtirish</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- MODAL: CASE OPENING (ROULETTE) -->
+        <div class="modal" id="caseModal">
+            <div class="modal-content modal-case">
+                <button class="btn-modal-close" id="btnCloseCaseModal">✕</button>
+                <h3 class="modal-case-title" id="modalCaseName">Keys Nomi</h3>
+                <span class="modal-case-price" id="modalCasePrice">0.00$</span>
+
+                <!-- CS2 ROULETTE REEL -->
+                <div class="roulette-container">
+                    <div class="roulette-selector"></div>
+                    <div class="roulette-track" id="rouletteTrack">
+                        <!-- Skinlar qatori aylanadi -->
+                    </div>
+                </div>
+
+                <div class="case-action-row">
+                    <button class="btn-open-case" id="btnStartOpenCase">KEYSNI OCHISH</button>
+                </div>
+
+                <!-- Keys ichidagi barcha skinlar -->
+                <h4 class="case-content-title">Ushbu keysdagi skinlar:</h4>
+                <div class="case-items-preview" id="caseItemsPreview">
+                    <!-- Skinlar ro'yxati -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: WINNER POPUP -->
+        <div class="modal" id="winModal">
+            <div class="modal-content modal-win">
+                <div class="win-burst"></div>
+                <span class="win-caption">TABRIKLAYMIZ! YUTUQ:</span>
+                <img id="winSkinImg" src="" alt="Skin" class="win-skin-img" />
+                <h3 id="winSkinName" class="win-skin-name">Skin Nomi</h3>
+                <span id="winSkinPrice" class="win-skin-price">0.00$</span>
+
+                <div class="win-actions">
+                    <button class="btn-win-sell" id="btnWinSell">Balansga Sotish</button>
+                    <button class="btn-win-keep" id="btnWinKeep">Inventarda Qoldirish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: DEPOSIT (HISOB TO'LDIRISH) -->
+        <div class="modal" id="depositModal">
+            <div class="modal-content modal-deposit">
+                <button class="btn-modal-close" id="btnCloseDeposit">✕</button>
+                <h3>💰 Hisobni To'ldirish</h3>
+                <p class="subtitle">O'zbekiston kartalari va Kripto orqali xavfsiz to'lov</p>
+
+                <div class="payment-methods">
+                    <div class="pay-method active" data-method="payme">
+                        <span class="pay-icon">🟢</span>
+                        <strong>Payme / Click</strong>
+                        <small>UZS kartalari</small>
+                    </div>
+                    <div class="pay-method" data-method="crypto">
+                        <span class="pay-icon">💎</span>
+                        <strong>TON / USDT</strong>
+                        <small>Kriptovalyuta</small>
+                    </div>
+                    <div class="pay-method" data-method="skins">
+                        <span class="pay-icon">🎮</span>
+                        <strong>Steam Skinlari</strong>
+                        <small>SkinsBack</small>
+                    </div>
+                </div>
+
+                <div class="deposit-amount-row">
+                    <label>Summa ($):</label>
+                    <div class="amount-presets">
+                        <button class="btn-preset" data-amt="5">5$</button>
+                        <button class="btn-preset active" data-amt="10">10$</button>
+                        <button class="btn-preset" data-amt="25">25$</button>
+                        <button class="btn-preset" data-amt="50">50$</button>
+                    </div>
+                    <input type="number" id="depositCustomAmt" value="10" min="1" />
+                </div>
+
+                <button class="btn-confirm-deposit" id="btnConfirmDeposit">TO'LASHGA O'TISH</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
