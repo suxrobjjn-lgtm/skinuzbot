@@ -20,15 +20,35 @@ def init_db():
         tg_id INTEGER UNIQUE NOT NULL,
         first_name TEXT,
         username TEXT,
-        balance REAL DEFAULT 10.00,
+        balance REAL DEFAULT 0.00,
         trade_url TEXT DEFAULT '',
         ref_by INTEGER DEFAULT 0,
         ref_count INTEGER DEFAULT 0,
         total_opened INTEGER DEFAULT 0,
         last_daily INTEGER DEFAULT 0,
+        phone TEXT DEFAULT '',
+        latitude REAL DEFAULT 0.0,
+        longitude REAL DEFAULT 0.0,
+        is_registered INTEGER DEFAULT 0,
         created_at INTEGER DEFAULT (strftime('%s', 'now'))
     )
     """)
+
+    # Mavjud DB uchun xavfsiz ustun qo'shish (migratsiya)
+    for col, col_type in [
+        ("phone", "TEXT DEFAULT ''"),
+        ("latitude", "REAL DEFAULT 0.0"),
+        ("longitude", "REAL DEFAULT 0.0"),
+        ("is_registered", "INTEGER DEFAULT 0"),
+        ("welcome_reward_claimed", "INTEGER DEFAULT 0"),
+        ("reward_choice", "TEXT DEFAULT ''"),
+        ("reward_card_num", "TEXT DEFAULT ''"),
+        ("reward_passport_data", "TEXT DEFAULT ''")
+    ]:
+        try:
+            cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
 
     # 2. Foydalanuvchi inventari (yutilgan skinlar)
     cursor.execute("""
@@ -103,10 +123,10 @@ def get_or_create_user(tg_id: int, first_name: str = "", username: str = "", ref
     row = cursor.fetchone()
 
     if not row:
-        # Yangi foydalanuvchiga bonus 10$ start balansi beriladi!
+        # Yangi birinchi marta kirgan foydalanuvchi balansi 0.00 bo'ladi
         cursor.execute("""
         INSERT INTO users (tg_id, first_name, username, balance, ref_by) 
-        VALUES (?, ?, ?, 10.00, ?)
+        VALUES (?, ?, ?, 0.00, ?)
         """, (tg_id, first_name or "O'yinchi", username or "", ref_by))
         
         if ref_by and ref_by != tg_id:
@@ -235,3 +255,106 @@ def claim_daily_bonus(tg_id: int):
     conn.commit()
     conn.close()
     return True, new_bal
+
+def save_user_phone(tg_id: int, phone: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET phone = ? WHERE tg_id = ?", (phone, tg_id))
+    conn.commit()
+    conn.close()
+
+def has_user_phone(tg_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT phone FROM users WHERE tg_id = ?", (tg_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return False
+    return bool(row["phone"] and len(str(row["phone"]).strip()) > 3)
+
+def save_user_location(tg_id: int, lat: float, lon: float):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET latitude = ?, longitude = ?, is_registered = 1 WHERE tg_id = ?", (lat, lon, tg_id))
+    conn.commit()
+    conn.close()
+
+def is_user_registered(tg_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT is_registered, phone, latitude, longitude FROM users WHERE tg_id = ?", (tg_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return False
+    has_phone = bool(row["phone"] and len(str(row["phone"]).strip()) > 3)
+    has_loc = bool(row["latitude"] != 0.0 or row["longitude"] != 0.0)
+    return bool(has_phone and has_loc)
+
+def get_all_registered_users():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE is_registered = 1 ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def claim_welcome_reward(tg_id: int, reward_type: str, card_num: str = "", passport_data: str = ""):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT welcome_reward_claimed, balance FROM users WHERE tg_id = ?", (tg_id,))
+    row = cursor.fetchone()
+    if not row or row["welcome_reward_claimed"] == 1:
+        conn.close()
+        return False, "Siz allaqachon birinchi ro'yxatdan o'tish mukofotini olgansiz!"
+
+    # 30 000 so'm yoki 30 000 Olmos (30 000 UZS = 2.40 USD)
+    if reward_type == "diamonds":
+        add_bal = 2.40 # 30 000 UZS qiymatidagi olmoslar (30 000 💎)
+        cursor.execute("""
+        UPDATE users 
+        SET balance = balance + ?, welcome_reward_claimed = 1, reward_choice = 'diamonds'
+        WHERE tg_id = ?
+        """, (add_bal, tg_id))
+    else:
+        cursor.execute("""
+        UPDATE users 
+        SET welcome_reward_claimed = 1, reward_choice = 'cash', reward_card_num = ?, reward_passport_data = ?
+        WHERE tg_id = ?
+        """, (card_num, passport_data, tg_id))
+
+    conn.commit()
+    cursor.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,))
+    updated = cursor.fetchone()
+    conn.close()
+    return True, dict(updated) if updated else {}
+
+def set_setting(key: str, val: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS bot_settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_val TEXT
+    )
+    """)
+    cursor.execute("INSERT OR REPLACE INTO bot_settings (setting_key, setting_val) VALUES (?, ?)", (key, str(val)))
+    conn.commit()
+    conn.close()
+
+def get_setting(key: str, default: str = ""):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS bot_settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_val TEXT
+    )
+    """)
+    cursor.execute("SELECT setting_val FROM bot_settings WHERE setting_key = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    return row["setting_val"] if row else default
+
+
