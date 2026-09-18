@@ -32,13 +32,19 @@ import skins_data as data
 # Sozlamalar
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8831392374:AAGL9Ks0X31ZLgmfKnsMySwpzd74AF0kLLM").strip()
 PORT = int(os.getenv("PORT", 8080))
-# Telegram Web App faqat HTTPS talab qiladi (Lokal Cloudflare HTTPS Tunnel)
 DEFAULT_HTTPS_URL = "https://mods-completing-partnerships-trek.trycloudflare.com"
-raw_url = os.getenv("RENDER_EXTERNAL_URL", DEFAULT_HTTPS_URL).strip().rstrip("/")
-if not raw_url.startswith("https://"):
-    WEB_APP_URL = DEFAULT_HTTPS_URL
+
+# Render yoki boshqa hostinglarda avtomatik HTTPS domenni aniqlash
+app_url_env = os.getenv("WEB_APP_URL") or os.getenv("RENDER_EXTERNAL_URL")
+if not app_url_env and os.getenv("RENDER_EXTERNAL_HOSTNAME"):
+    app_url_env = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}"
+
+if app_url_env and app_url_env.startswith("http"):
+    if not app_url_env.startswith("https://"):
+        app_url_env = app_url_env.replace("http://", "https://")
+    WEB_APP_URL = app_url_env.rstrip("/")
 else:
-    WEB_APP_URL = raw_url
+    WEB_APP_URL = DEFAULT_HTTPS_URL
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 

@@ -1,329 +1,200 @@
-# CS2 Skins & Cases Ma'lumotlar Bazasi
-# Steam CDN va rasmiy CS2 skinlari
+# CS2 Skins & Cases Ma'lumotlar Bazasi (Hamyonbop narxlar + Boyitilgan oddiy skinlar)
 
 SKINS = [
-    # --- Pichoqlar va Maxsus (Special / Gold - Rare) ---
-    {
-        "id": 1,
-        "name": "Karambit | Doppler (Phase 2)",
-        "weapon": "Karambit",
-        "category": "knife",
-        "rarity": "covert-knife",
-        "color": "#e056fd",
-        "price": 850.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20hPbkI7PYhG5u5Mx2gv2PoN330VXs_0U9ZDqldoWQdwA7MwvRqVPqwurugZG6vc7Ozidk6yEh53fdy0epwUYbE4W3Yg/360fx360f"
-    },
-    {
-        "id": 2,
-        "name": "Butterfly Knife | Fade",
-        "weapon": "Butterfly Knife",
-        "category": "knife",
-        "rarity": "covert-knife",
-        "color": "#f0932b",
-        "price": 1450.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf8PL3fDJW49W5mpS0n_L1JaKfzzoGu5Up2L6XpI6t0QG3-kNkYWvzLdedelQ-YV6F_VjtyObng8O678nMm3A2uyAm-z-DyG2q88a5/360fx360f"
-    },
-    {
-        "id": 3,
-        "name": "M9 Bayonet | Marble Fade",
-        "weapon": "M9 Bayonet",
-        "category": "knife",
-        "rarity": "covert-knife",
-        "color": "#e056fd",
-        "price": 920.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf3qr3czhx5ci5q5CKqPrxN7LEmyUHv8Yo07qYptmiigOwrhZsYTrxLNSScFRrZwyB-lfsyLrrgcDp75TAm3pm7Cgg-z-DyNPFf2l8/360fx360f"
-    },
-    {
-        "id": 4,
-        "name": "Sport Gloves | Vice",
-        "weapon": "Sport Gloves",
-        "category": "gloves",
-        "rarity": "covert-gloves",
-        "color": "#eb4d4b",
-        "price": 1200.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxuHbZC597c2Jm4mKmfPLPr7Vn35cpsB037yVo9r22wPk-BVoZ2ChJ9OWdQ8_YQuD_QC_wezq0MW6vJTOm2wj5Hc2c5Qh-w/360fx360f"
-    },
+    # --- 1. ODDIY VA O'RTA SKINLAR (MIL-SPEC & RESTRICTED - ARZON VA KO'P) ---
+    {"id": 10, "name": "MAC-10 | Light Box", "weapon": "MAC-10", "category": "smg", "rarity": "mil-spec", "color": "#4b7bec", "price": 0.25, "image": "images/skin_mac10.png"},
+    {"id": 36, "name": "Galil AR | Chatterbox", "weapon": "Galil AR", "category": "rifle", "rarity": "mil-spec", "color": "#4b7bec", "price": 0.40, "image": "images/skin_vulcan.png"},
+    {"id": 32, "name": "MP9 | Starlight Protector", "weapon": "MP9", "category": "smg", "rarity": "mil-spec", "color": "#4b7bec", "price": 0.50, "image": "images/skin_mac10.png"},
+    {"id": 37, "name": "MAC-10 | Neon Rider", "weapon": "MAC-10", "category": "smg", "rarity": "restricted", "color": "#8854d0", "price": 0.85, "image": "images/skin_mac10.png"},
+    {"id": 30, "name": "Glock-18 | Water Elemental", "weapon": "Glock-18", "category": "pistol", "rarity": "restricted", "color": "#8854d0", "price": 1.20, "image": "images/skin_printstream.png"},
+    {"id": 33, "name": "P90 | Asiimov", "weapon": "P90", "category": "smg", "rarity": "restricted", "color": "#8854d0", "price": 1.50, "image": "images/skin_asiimov.png"},
+    {"id": 35, "name": "FAMAS | Commemoration", "weapon": "FAMAS", "category": "rifle", "rarity": "restricted", "color": "#8854d0", "price": 1.80, "image": "images/skin_redline.png"},
+    {"id": 34, "name": "SSG 08 | Dragonfire", "weapon": "SSG 08", "category": "sniper", "rarity": "restricted", "color": "#8854d0", "price": 2.20, "image": "images/skin_dragonlore.png"},
+    {"id": 9,  "name": "AK-47 | Redline", "weapon": "AK-47", "category": "rifle", "rarity": "classified", "color": "#d980fa", "price": 3.50, "image": "images/skin_redline.png"},
+    {"id": 8,  "name": "USP-S | Neo-Noir", "weapon": "USP-S", "category": "pistol", "rarity": "classified", "color": "#d980fa", "price": 4.20, "image": "images/skin_neonoair.png"},
+    {"id": 38, "name": "USP-S | The Traitor", "weapon": "USP-S", "category": "pistol", "rarity": "classified", "color": "#d980fa", "price": 5.00, "image": "images/skin_neonoair.png"},
+    {"id": 7,  "name": "M4A1-S | Hyper Beast", "weapon": "M4A1-S", "category": "rifle", "rarity": "classified", "color": "#d980fa", "price": 6.50, "image": "images/skin_hyperbeast.png"},
+    {"id": 24, "name": "M4A1-S | Player Two", "weapon": "M4A1-S", "category": "rifle", "rarity": "classified", "color": "#d980fa", "price": 8.00, "image": "images/skin_hyperbeast.png"},
+    {"id": 27, "name": "Desert Eagle | Code Red", "weapon": "Desert Eagle", "category": "pistol", "rarity": "classified", "color": "#d980fa", "price": 9.50, "image": "images/skin_printstream.png"},
 
-    # --- Covert (Qizil - Covert) ---
-    {
-        "id": 5,
-        "name": "AWP | Dragon Lore",
-        "weapon": "AWP",
-        "category": "sniper",
-        "rarity": "covert",
-        "color": "#eb4d4b",
-        "price": 3500.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0n_L1JaKfzzoGu5Up3r-T9tjx0Aaw-ENkMWjzLNPEcQc4N1_SqFO6wLznhpft787ImCBh63Ym53vczRepwUYb8Yx8fQ8/360fx360f"
-    },
-    {
-        "id": 6,
-        "name": "AK-47 | Fire Serpent",
-        "weapon": "AK-47",
-        "category": "rifle",
-        "rarity": "covert",
-        "color": "#eb4d4b",
-        "price": 650.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08y5nb-GkvP9Jrafw2lU6ccp0rqVpduj21Xk_UFrZWDwLIeWdlA-YgvZ-lG3xuvqjJLv6MzInXNl7HV243_bzBapwUYbU2iXp9A/360fx360f"
-    },
-    {
-        "id": 7,
-        "name": "M4A4 | Howl",
-        "weapon": "M4A4",
-        "category": "rifle",
-        "rarity": "contraband",
-        "color": "#ff4757",
-        "price": 2800.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITBhGJf_NZlmOzA-LP5gVO8v11rNWqicNWVdwRtM13Y-FG4k-jqhsPtuZucmHBj7CYn53nfmRW110pIcKUxLQ2_oKzZ/360fx360f"
-    },
-    {
-        "id": 8,
-        "name": "Desert Eagle | Printstream",
-        "weapon": "Desert Eagle",
-        "category": "pistol",
-        "rarity": "covert",
-        "color": "#eb4d4b",
-        "price": 75.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH_8mkgL-OlvD4NoTSmXld-8l9gv_X9ortigKwqkdlamrzLY-RI1dsZVvU-Fi-xrvtg8e1vZ_MziAzvHQjs3_fmUXlg01FcKUxLQ1U0d-k/360fx360f"
-    },
-    {
-        "id": 9,
-        "name": "AWP | Asiimov",
-        "weapon": "AWP",
-        "category": "sniper",
-        "rarity": "covert",
-        "color": "#eb4d4b",
-        "price": 120.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2PrNms2wXsrkRoYjrycNOdcVc-N1_R-FS9kOnp18W76pnKnCdnuHQ8pGB8sjv19fU6/360fx360f"
-    },
-    {
-        "id": 10,
-        "name": "AK-47 | Vulcan",
-        "weapon": "AK-47",
-        "category": "rifle",
-        "rarity": "covert",
-        "color": "#eb4d4b",
-        "price": 190.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08-5lpKKqPrxN7LEmyUI6Zco3rmTrNms2VDn_0VqNW-mINOWcAFoNwrX_1PoxrvrgJC77svBznQw6CE8pGB8sjW3p2e8/360fx360f"
-    },
+    # --- 2. QIMMAT VA MASHHUR COVERT MILTIQLAR VA TO'PPONCHALAR ---
+    {"id": 6,  "name": "Desert Eagle | Printstream", "weapon": "Desert Eagle", "category": "pistol", "rarity": "covert", "color": "#eb4d4b", "price": 14.00, "image": "images/skin_printstream.png"},
+    {"id": 5,  "name": "AWP | Asiimov", "weapon": "AWP", "category": "sniper", "rarity": "covert", "color": "#eb4d4b", "price": 18.00, "image": "images/skin_asiimov.png"},
+    {"id": 4,  "name": "AK-47 | Vulcan", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#eb4d4b", "price": 24.00, "image": "images/skin_vulcan.png"},
+    {"id": 31, "name": "AK-47 | Bloodsport", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#eb4d4b", "price": 28.00, "image": "images/skin_vulcan.png"},
+    {"id": 28, "name": "USP-S | Kill Confirmed", "weapon": "USP-S", "category": "pistol", "rarity": "covert", "color": "#eb4d4b", "price": 32.00, "image": "images/skin_neonoair.png"},
+    {"id": 26, "name": "Desert Eagle | Blaze", "weapon": "Desert Eagle", "category": "pistol", "rarity": "covert", "color": "#eb4d4b", "price": 45.00, "image": "images/skin_printstream.png"},
+    {"id": 25, "name": "AWP | Lightning Strike", "weapon": "AWP", "category": "sniper", "rarity": "covert", "color": "#eb4d4b", "price": 55.00, "image": "images/skin_asiimov.png"},
+    {"id": 22, "name": "AK-47 | Case Hardened", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#0984e3", "price": 65.00, "image": "images/skin_redline.png"},
+    {"id": 19, "name": "AK-47 | Fire Serpent", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#eb4d4b", "price": 85.00, "image": "images/skin_vulcan.png"},
+    {"id": 23, "name": "M4A1-S | Welcome to Jungle", "weapon": "M4A1-S", "category": "rifle", "rarity": "covert", "color": "#10e87b", "price": 95.00, "image": "images/skin_hyperbeast.png"},
+    {"id": 29, "name": "Glock-18 | Fade", "weapon": "Glock-18", "category": "pistol", "rarity": "covert", "color": "#f0932b", "price": 110.00, "image": "images/skin_printstream.png"},
+    {"id": 21, "name": "AK-47 | Gold Arabesque", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#f1c40f", "price": 140.00, "image": "images/skin_vulcan.png"},
+    {"id": 20, "name": "AK-47 | Wild Lotus", "weapon": "AK-47", "category": "rifle", "rarity": "covert", "color": "#10e87b", "price": 180.00, "image": "images/skin_vulcan.png"},
+    {"id": 3,  "name": "AWP | Dragon Lore", "weapon": "AWP", "category": "sniper", "rarity": "covert", "color": "#f1c40f", "price": 250.00, "image": "images/skin_dragonlore.png"},
+    {"id": 17, "name": "M4A4 | Howl", "weapon": "M4A4", "category": "rifle", "rarity": "contraband", "color": "#eb4d4b", "price": 300.00, "image": "images/skin_hyperbeast.png"},
+    {"id": 18, "name": "AWP | Gungnir", "weapon": "AWP", "category": "sniper", "rarity": "covert", "color": "#00cec9", "price": 380.00, "image": "images/skin_dragonlore.png"},
 
-    # --- Classified (Pushti - Classified) ---
-    {
-        "id": 11,
-        "name": "USP-S | Neo-Noir",
-        "weapon": "USP-S",
-        "category": "pistol",
-        "rarity": "classified",
-        "color": "#d980fa",
-        "price": 28.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8j_OrrcmW5D18p0ptbN_Iv9nBrmr0dtMmzwLdedclU_NF_S_1G7le25hsS9vZuYn3FiunUlsX-Ly0epwUYbtbM27Z8/360fx360f"
-    },
-    {
-        "id": 12,
-        "name": "M4A1-S | Hyper Beast",
-        "weapon": "M4A1-S",
-        "category": "rifle",
-        "rarity": "classified",
-        "color": "#d980fa",
-        "price": 45.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITBhGJf_NZlmOzA-LP5gVO8v11uMGnxco-cdQM-NQqCr1ftwufrhsC5uZTMnHU173V34nqJnhewhktMcKUxLPWz4Y_k/360fx360f"
-    },
-    {
-        "id": 13,
-        "name": "Glock-18 | Water Elemental",
-        "weapon": "Glock-18",
-        "category": "pistol",
-        "rarity": "classified",
-        "color": "#d980fa",
-        "price": 14.50,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJmo-Hmcj4OrzZglRd6dd2j6eU99uh2wXsr0A-YzyicdORcg83YVzUr1C7wru7hpW9upvByidrv3Vy4Hrbnh2pwUYb6Z-u36M/360fx360f"
-    },
-    {
-        "id": 14,
-        "name": "AK-47 | Redline",
-        "weapon": "AK-47",
-        "category": "rifle",
-        "rarity": "classified",
-        "color": "#d980fa",
-        "price": 22.00,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV08y5mIWKgePnJ77fqWZU7Mxkh6eR8d6k3gzsr0VkNz37cYHBewc6Ml7WrFa5weu-g5Lou5ufzXBquCBw4WG8jxbXn1gSOeM3j_C1/360fx360f"
-    },
-
-    # --- Restricted (Binafsha - Restricted) ---
-    {
-        "id": 15,
-        "name": "AWP | Atheris",
-        "weapon": "AWP",
-        "category": "sniper",
-        "rarity": "restricted",
-        "color": "#8854d0",
-        "price": 6.50,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2P94it3wK2rURtZzz7LYPAegFqMVnWrle_wLy80JS1uJicm3c27CB07HzanUO10k5EcKUxLN4m0-s7/360fx360f"
-    },
-    {
-        "id": 16,
-        "name": "Desert Eagle | Light Rail",
-        "weapon": "Desert Eagle",
-        "category": "pistol",
-        "rarity": "restricted",
-        "color": "#8854d0",
-        "price": 4.80,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH_8mkgL-OlvD4NoTSmXld-8l9gv_X9ortjVW2r0Zla2jzLIGRcwM3Y12G8le-w729hsW67ZyfznpguXZx5ivfnxapwUYbv57vY0Y/360fx360f"
-    },
-    {
-        "id": 17,
-        "name": "M4A4 | Evil Daimyo",
-        "weapon": "M4A4",
-        "category": "rifle",
-        "rarity": "restricted",
-        "color": "#8854d0",
-        "price": 3.90,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITBhGJf_NZlmOzA-LP5gVO8v10_Z237LNSdcgc8YgzR_la-x7y8gZ-0uZzMzncx7nQk53yLmhewhktMcKUxLDf-X2v2/360fx360f"
-    },
-    {
-        "id": 18,
-        "name": "AK-47 | Slate",
-        "weapon": "AK-47",
-        "category": "rifle",
-        "rarity": "restricted",
-        "color": "#8854d0",
-        "price": 5.20,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35c18lwmOzA8Nj03wXkqUNvMmn7IIeUelA9YQnQ-Vbsw--5g5O4u5ybmCNl6SYl-z-DyPj5u8L5/360fx360f"
-    },
-
-    # --- Mil-Spec (Ko'k - Mil-Spec) ---
-    {
-        "id": 19,
-        "name": "Glock-18 | High Beam",
-        "weapon": "Glock-18",
-        "category": "pistol",
-        "rarity": "mil-spec",
-        "color": "#4b7bec",
-        "price": 1.20,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79fnzL-ckvbnNrfum25V4dB8xOiWpdyh2wW2rhE6NW36JoeddQBqNAvU_1e5lebug8C46pqcyCQyu3Ym43rYnBW-10pEcKUxLMm08D3J/360fx360f"
-    },
-    {
-        "id": 20,
-        "name": "USP-S | Flashback",
-        "weapon": "USP-S",
-        "category": "pistol",
-        "rarity": "mil-spec",
-        "color": "#4b7bec",
-        "price": 1.50,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8j_OrrcmW5D18p0ptbN_Iv9nBrm-ERuajqnddfBdVJtZwnQ-FO2x-q61MXuv5-cySZquXRw5Srfmhe0hB5McKUxLG9zVz4m/360fx360f"
-    },
-    {
-        "id": 21,
-        "name": "P250 | Valence",
-        "weapon": "P250",
-        "category": "pistol",
-        "rarity": "mil-spec",
-        "color": "#4b7bec",
-        "price": 0.85,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhjxszYI2gS09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQ23-ENsYm-nddCRdQVoNVrSrFe2we7uhMC9vM-bz3swviBx4GGdwULe9T-X6A/360fx360f"
-    },
-    {
-        "id": 22,
-        "name": "MP9 | Starlight Protector",
-        "weapon": "MP9",
-        "category": "smg",
-        "rarity": "classified",
-        "color": "#d980fa",
-        "price": 8.40,
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou6r8FABz7P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2PoI6h2Qaw-EZlZmrwJoXAdVI3Zw3Y_lnvx729hpLu7cidmiBq73J34X7cnRepwUYbm_515k0/360fx360f"
-    }
+    # --- 3. PICHOQLAR VA QO'LQOPLAR (JEKPOTLAR) ---
+    {"id": 1,  "name": "★ Nomad Knife | Doppler", "weapon": "Nomad Knife", "category": "knife", "rarity": "covert-knife", "color": "#e056fd", "price": 75.00, "image": "images/skin_nomad.png"},
+    {"id": 14, "name": "★ Talon Knife | Marble Fade", "weapon": "Talon Knife", "category": "knife", "rarity": "covert-knife", "color": "#e056fd", "price": 90.00, "image": "images/skin_butterfly.png"},
+    {"id": 13, "name": "★ Skeleton Knife | Crimson Web", "weapon": "Skeleton Knife", "category": "knife", "rarity": "covert-knife", "color": "#eb4d4b", "price": 105.00, "image": "images/skin_nomad.png"},
+    {"id": 11, "name": "★ Karambit | Tiger Tooth", "weapon": "Karambit", "category": "knife", "rarity": "covert-knife", "color": "#f1c40f", "price": 120.00, "image": "images/skin_nomad.png"},
+    {"id": 16, "name": "★ Specialist Gloves | Crimson", "weapon": "Specialist Gloves", "category": "gloves", "rarity": "covert-knife", "color": "#eb4d4b", "price": 135.00, "image": "images/skin_nomad.png"},
+    {"id": 2,  "name": "★ Butterfly Knife | Fade", "weapon": "Butterfly Knife", "category": "knife", "rarity": "covert-knife", "color": "#f0932b", "price": 160.00, "image": "images/skin_butterfly.png"},
+    {"id": 12, "name": "★ M9 Bayonet | Gamma Doppler", "weapon": "M9 Bayonet", "category": "knife", "rarity": "covert-knife", "color": "#10e87b", "price": 185.00, "image": "images/skin_butterfly.png"},
+    {"id": 15, "name": "★ Sport Gloves | Vice", "weapon": "Sport Gloves", "category": "gloves", "rarity": "covert-knife", "color": "#e056fd", "price": 220.00, "image": "images/skin_butterfly.png"}
 ]
 
-# Keyslar to'plami (Cases)
+# Keyslar to'plami (Hamyonbop arzon narxlar + Boyitilgan oddiy va qimmat skinlar)
 CASES = [
     {
         "id": "free",
-        "name": "🎁 FREE DAILY CASE",
+        "name": "🎁 FREE DAILY",
         "tag": "FREE",
         "price": 0.00,
         "badge": "Kunlik Bepul",
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQh5hlcX0nvUOGsx8DdQBJjIAVHubSaLwJh1P_NYjx9-Jimq42Khqj3a77UwmhQ4cZw2e-V942jjgXnqhA-amv0IYfGJlRtM13YqVLvxua5hsW-u5qamHBk7HQh43yLl0G1hhgZPLdtgPXMSWGeA6UdQv2T/360fx360f",
-        "color": "#2ed573",
-        # skin_id, chance (foizda)
+        "image": "images/case_free.png",
+        "color": "#10e87b",
         "items": [
-            {"skin_id": 21, "weight": 50},  # Valence (50%)
-            {"skin_id": 19, "weight": 30},  # High Beam (30%)
-            {"skin_id": 20, "weight": 14},  # Flashback (14%)
-            {"skin_id": 16, "weight": 4.5}, # Light Rail (4.5%)
-            {"skin_id": 18, "weight": 1.2}, # Slate (1.2%)
-            {"skin_id": 8,  "weight": 0.3}  # Printstream (0.3% - Jekpot!)
+            {"skin_id": 10, "weight": 35},  # MAC-10 Light Box (0.25$)
+            {"skin_id": 36, "weight": 25},  # Galil Chatterbox (0.40$)
+            {"skin_id": 32, "weight": 18},  # MP9 Starlight (0.50$)
+            {"skin_id": 37, "weight": 12},  # MAC-10 Neon Rider (0.85$)
+            {"skin_id": 30, "weight": 8},   # Glock Water (1.20$)
+            {"skin_id": 9,  "weight": 5},   # AK-47 Redline (3.50$)
+            {"skin_id": 8,  "weight": 3},   # USP Neo-Noir (4.20$)
+            {"skin_id": 7,  "weight": 2},   # M4A1 Hyper Beast (6.50$)
+            {"skin_id": 1,  "weight": 1}    # Nomad Knife (75$)
         ]
     },
     {
-        "id": "starter",
-        "name": "⚡ STARTER CASE",
+        "id": "revolution",
+        "name": "⚡ REVOLUTION CASE",
         "tag": "HOT",
-        "price": 1.99,
-        "badge": "Boshlang'ich",
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQh5hlcX0nvUOGsx8DdQBJjIAVHubSaLwJh1P_NYjx9-Jimq42Khqj3a77UwmhQ4cZw2e-V942jjgXnqhA-amv0IYfGJlRtM13YqVLvxua5hsW-u5qamHBk7HQh43yLl0G1hhgZPLdtgPXMSWGeA6UdQv2T/360fx360f",
-        "color": "#3867d6",
+        "price": 0.49,
+        "badge": "Arzon",
+        "image": "images/case_revolution.png",
+        "color": "#e056fd",
         "items": [
-            {"skin_id": 19, "weight": 35},
-            {"skin_id": 20, "weight": 30},
-            {"skin_id": 17, "weight": 18},
-            {"skin_id": 18, "weight": 10},
-            {"skin_id": 13, "weight": 5},
-            {"skin_id": 14, "weight": 1.7},
-            {"skin_id": 10, "weight": 0.3}
+            {"skin_id": 10, "weight": 30},
+            {"skin_id": 36, "weight": 22},
+            {"skin_id": 32, "weight": 18},
+            {"skin_id": 30, "weight": 14},
+            {"skin_id": 33, "weight": 10},
+            {"skin_id": 9,  "weight": 8},
+            {"skin_id": 8,  "weight": 6},
+            {"skin_id": 7,  "weight": 4},
+            {"skin_id": 6,  "weight": 2},
+            {"skin_id": 2,  "weight": 1}
         ]
     },
     {
-        "id": "covert_beast",
-        "name": "🔥 COVERT BEAST",
+        "id": "kilowatt",
+        "name": "⚡ KILOWATT CASE",
+        "tag": "TRENDING",
+        "price": 0.99,
+        "badge": "Trend",
+        "image": "images/case_kilowatt.png",
+        "color": "#f39c12",
+        "items": [
+            {"skin_id": 36, "weight": 26},
+            {"skin_id": 37, "weight": 20},
+            {"skin_id": 35, "weight": 16},
+            {"skin_id": 34, "weight": 14},
+            {"skin_id": 9,  "weight": 12},
+            {"skin_id": 8,  "weight": 10},
+            {"skin_id": 7,  "weight": 7},
+            {"skin_id": 6,  "weight": 5},
+            {"skin_id": 5,  "weight": 3},
+            {"skin_id": 11, "weight": 1}
+        ]
+    },
+    {
+        "id": "dreams",
+        "name": "🔥 DREAMS & NIGHTMARES",
         "tag": "POPULAR",
-        "price": 9.99,
-        "badge": "Kamyob",
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQh5hlcX0nvUOGsx8DdQBJjIAVHubSaLwJh1P_NYjx9-Jimq42Khqj3a77UwmhQ4cZw2e-V942jjgXnqhA-amv0IYfGJlRtM13YqVLvxua5hsW-u5qamHBk7HQh43yLl0G1hhgZPLdtgPXMSWGeA6UdQv2T/360fx360f",
+        "price": 1.99,
+        "badge": "Mashhur",
+        "image": "images/case_dreams.png",
         "color": "#eb4d4b",
         "items": [
-            {"skin_id": 15, "weight": 40},
-            {"skin_id": 14, "weight": 25},
-            {"skin_id": 11, "weight": 18},
-            {"skin_id": 12, "weight": 10},
-            {"skin_id": 8,  "weight": 5},
-            {"skin_id": 9,  "weight": 1.5},
-            {"skin_id": 10, "weight": 0.5}
+            {"skin_id": 30, "weight": 22},
+            {"skin_id": 35, "weight": 18},
+            {"skin_id": 9,  "weight": 16},
+            {"skin_id": 8,  "weight": 14},
+            {"skin_id": 7,  "weight": 12},
+            {"skin_id": 24, "weight": 10},
+            {"skin_id": 6,  "weight": 8},
+            {"skin_id": 5,  "weight": 6},
+            {"skin_id": 4,  "weight": 4},
+            {"skin_id": 13, "weight": 2},
+            {"skin_id": 3,  "weight": 1}
+        ]
+    },
+    {
+        "id": "clutch",
+        "name": "🧤 CLUTCH GLOVES",
+        "tag": "GLOVES",
+        "price": 3.99,
+        "badge": "Qo'lqop",
+        "image": "images/case_clutch.png",
+        "color": "#3498db",
+        "items": [
+            {"skin_id": 34, "weight": 20},
+            {"skin_id": 9,  "weight": 18},
+            {"skin_id": 7,  "weight": 16},
+            {"skin_id": 27, "weight": 14},
+            {"skin_id": 6,  "weight": 12},
+            {"skin_id": 5,  "weight": 10},
+            {"skin_id": 4,  "weight": 8},
+            {"skin_id": 16, "weight": 4},
+            {"skin_id": 14, "weight": 3},
+            {"skin_id": 15, "weight": 2}
         ]
     },
     {
         "id": "knife_fever",
         "name": "🔪 KNIFE & GLOVES",
         "tag": "LEGENDARY",
-        "price": 35.00,
+        "price": 6.99,
         "badge": "Pichoqlar",
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQh5hlcX0nvUOGsx8DdQBJjIAVHubSaLwJh1P_NYjx9-Jimq42Khqj3a77UwmhQ4cZw2e-V942jjgXnqhA-amv0IYfGJlRtM13YqVLvxua5hsW-u5qamHBk7HQh43yLl0G1hhgZPLdtgPXMSWGeA6UdQv2T/360fx360f",
+        "image": "images/case_knives.png",
         "color": "#e056fd",
         "items": [
-            {"skin_id": 8,  "weight": 40},
-            {"skin_id": 9,  "weight": 30},
-            {"skin_id": 10, "weight": 18},
-            {"skin_id": 6,  "weight": 8},
-            {"skin_id": 1,  "weight": 2.2},
-            {"skin_id": 3,  "weight": 1.2},
-            {"skin_id": 4,  "weight": 0.5},
-            {"skin_id": 2,  "weight": 0.1}
+            {"skin_id": 8,  "weight": 20},
+            {"skin_id": 7,  "weight": 18},
+            {"skin_id": 6,  "weight": 16},
+            {"skin_id": 5,  "weight": 14},
+            {"skin_id": 4,  "weight": 12},
+            {"skin_id": 1,  "weight": 8},
+            {"skin_id": 14, "weight": 6},
+            {"skin_id": 13, "weight": 5},
+            {"skin_id": 11, "weight": 4},
+            {"skin_id": 2,  "weight": 3},
+            {"skin_id": 12, "weight": 2}
         ]
     },
     {
         "id": "dragon_vault",
         "name": "👑 DRAGON VAULT",
         "tag": "EXCLUSIVE",
-        "price": 99.00,
+        "price": 12.99,
         "badge": "VIP Jekpot",
-        "image": "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQh5hlcX0nvUOGsx8DdQBJjIAVHubSaLwJh1P_NYjx9-Jimq42Khqj3a77UwmhQ4cZw2e-V942jjgXnqhA-amv0IYfGJlRtM13YqVLvxua5hsW-u5qamHBk7HQh43yLl0G1hhgZPLdtgPXMSWGeA6UdQv2T/360fx360f",
+        "image": "images/case_dragon.png",
         "color": "#f0932b",
         "items": [
-            {"skin_id": 10, "weight": 45},
-            {"skin_id": 6,  "weight": 30},
-            {"skin_id": 1,  "weight": 14},
-            {"skin_id": 4,  "weight": 7},
-            {"skin_id": 2,  "weight": 3},
-            {"skin_id": 7,  "weight": 0.8},
-            {"skin_id": 5,  "weight": 0.2} # Dragon Lore!
+            {"skin_id": 5,  "weight": 18},
+            {"skin_id": 4,  "weight": 16},
+            {"skin_id": 26, "weight": 14},
+            {"skin_id": 19, "weight": 12},
+            {"skin_id": 1,  "weight": 10},
+            {"skin_id": 2,  "weight": 8},
+            {"skin_id": 21, "weight": 6},
+            {"skin_id": 15, "weight": 5},
+            {"skin_id": 3,  "weight": 4},
+            {"skin_id": 17, "weight": 3},
+            {"skin_id": 18, "weight": 2}
         ]
     }
 ]

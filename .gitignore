@@ -6,3 +6,16 @@ __pycache__/
 .idea/
 *.log
 mingit/
+cloudflared.exe
+extensions/
+*.ps1
+*.bat
+skenuz.db
+kino_bot.db
+linux_networking_handbook.md
+calc_sizes*
+estimate_size*
+copy_*
+check_*
+test_*
+
