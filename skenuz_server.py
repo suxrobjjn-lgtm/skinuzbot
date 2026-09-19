@@ -860,12 +860,12 @@ async def main():
     async def keep_alive_ping():
         import aiohttp
         while True:
-            await asyncio.sleep(480) # har 8 daqiqada Render uxlamasligi uchun ping
+            await asyncio.sleep(180) # har 3 daqiqada Render uxlamasligi uchun o'ziga ping
             try:
-                if WEB_APP_URL and "onrender.com" in WEB_APP_URL:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(f"{WEB_APP_URL}/") as resp:
-                            pass
+                target_url = WEB_APP_URL or "https://skinuzbot.onrender.com"
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"{target_url}/", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        pass
             except Exception:
                 pass
 
