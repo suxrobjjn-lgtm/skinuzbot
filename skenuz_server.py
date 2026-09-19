@@ -32,7 +32,7 @@ import skins_data as data
 # Sozlamalar
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8831392374:AAGL9Ks0X31ZLgmfKnsMySwpzd74AF0kLLM").strip()
 PORT = int(os.getenv("PORT", 8080))
-DEFAULT_HTTPS_URL = "https://mods-completing-partnerships-trek.trycloudflare.com"
+DEFAULT_HTTPS_URL = "https://skinuzbot.onrender.com"
 
 # Render yoki boshqa hostinglarda avtomatik HTTPS domenni aniqlash
 app_url_env = os.getenv("WEB_APP_URL") or os.getenv("RENDER_EXTERNAL_URL")
