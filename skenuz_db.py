@@ -190,7 +190,10 @@ def init_db():
             ("welcome_reward_claimed", "INTEGER DEFAULT 0"),
             ("reward_choice", "TEXT DEFAULT ''"),
             ("reward_card_num", "TEXT DEFAULT ''"),
-            ("reward_passport_data", "TEXT DEFAULT ''")
+            ("reward_passport_data", "TEXT DEFAULT ''"),
+            ("wheel_spun", "INTEGER DEFAULT 0"),
+            ("wheel_prize", "TEXT DEFAULT ''"),
+            ("deposit_bonus", "INTEGER DEFAULT 0")
         ]:
             try:
                 cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
@@ -423,7 +426,7 @@ def claim_daily_bonus(tg_id: int):
 def save_user_phone(tg_id: int, phone: str):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(_q("UPDATE users SET phone = ? WHERE tg_id = ?"), (phone, tg_id))
+    cursor.execute(_q("UPDATE users SET phone = ?, is_registered = 1 WHERE tg_id = ?"), (phone, tg_id))
     conn.commit()
     conn.close()
 
@@ -439,25 +442,16 @@ def has_user_phone(tg_id: int) -> bool:
     return bool(row.get("phone") and len(str(row["phone"]).strip()) > 3)
 
 
-def save_user_location(tg_id: int, lat: float, lon: float):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(_q("UPDATE users SET latitude = ?, longitude = ?, is_registered = 1 WHERE tg_id = ?"), (lat, lon, tg_id))
-    conn.commit()
-    conn.close()
-
-
 def is_user_registered(tg_id: int) -> bool:
+    """Foydalanuvchi telefon raqamini yuborgan bo'lsa ro'yxatdan o'tgan hisoblanadi"""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(_q("SELECT is_registered, phone, latitude, longitude FROM users WHERE tg_id = ?"), (tg_id,))
+    cursor.execute(_q("SELECT is_registered, phone FROM users WHERE tg_id = ?"), (tg_id,))
     row = _row_to_dict(cursor.fetchone())
     conn.close()
     if not row:
         return False
-    has_phone = bool(row.get("phone") and len(str(row["phone"]).strip()) > 3)
-    has_loc = bool((row.get("latitude") or 0.0) != 0.0 or (row.get("longitude") or 0.0) != 0.0)
-    return bool(has_phone and has_loc)
+    return bool((row.get("is_registered") == 1 or row.get("phone")) and len(str(row.get("phone") or "").strip()) > 3)
 
 
 def get_all_registered_users():
@@ -495,6 +489,60 @@ def claim_welcome_reward(tg_id: int, reward_type: str, card_num: str = "", passp
     updated = _row_to_dict(cursor.fetchone())
     conn.close()
     return True, updated if updated else {}
+
+
+def spin_wheel(tg_id: int):
+    """
+    Omad Barabani (Fortune Wheel) aylantirish logikasi.
+    7 ta sektor:
+      0: 30 000 Olmos (Asosiy bosh sovrin)
+      1: +50% Depozit bonusi (Birinchi depozit uchun)
+      2: 5 000 Olmos
+      3: +100% Depozit bonusi (Birinchi depozit uchun)
+      4: 2 000 Olmos
+      5: +200% Depozit bonusi (Birinchi depozit uchun)
+      6: Bankrot (Omad kelmadi)
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(_q("SELECT wheel_spun, wheel_prize, balance, deposit_bonus FROM users WHERE tg_id = ?"), (tg_id,))
+    row = _row_to_dict(cursor.fetchone())
+    if not row:
+        conn.close()
+        return False, "Foydalanuvchi topilmadi", None, 0.0, None
+
+    if row.get("wheel_spun") == 1:
+        conn.close()
+        return False, "Siz omad barabanini allaqachon aylantirgansiz!", None, row.get("balance", 0.0), row.get("wheel_prize")
+
+    sectors = [
+        {"index": 0, "type": "diamonds", "amount": 30000, "label": "30 000 Olmos", "weight": 5, "usd": 2.40},
+        {"index": 1, "type": "bonus", "amount": 50, "label": "+50% Depozit bonusi", "weight": 25, "usd": 0.0},
+        {"index": 2, "type": "diamonds", "amount": 5000, "label": "5 000 Olmos", "weight": 20, "usd": 0.40},
+        {"index": 3, "type": "bonus", "amount": 100, "label": "+100% Depozit bonusi", "weight": 20, "usd": 0.0},
+        {"index": 4, "type": "diamonds", "amount": 2000, "label": "2 000 Olmos", "weight": 20, "usd": 0.16},
+        {"index": 5, "type": "bonus", "amount": 200, "label": "+200% Depozit bonusi", "weight": 5, "usd": 0.0},
+        {"index": 6, "type": "bankrupt", "amount": 0, "label": "Bankrot", "weight": 5, "usd": 0.0},
+    ]
+
+    import random
+    weights = [s["weight"] for s in sectors]
+    chosen = random.choices(sectors, weights=weights, k=1)[0]
+
+    add_balance = chosen["usd"]
+    deposit_bonus = chosen["amount"] if chosen["type"] == "bonus" else (row.get("deposit_bonus") or 0)
+
+    cursor.execute(
+        _q("UPDATE users SET balance = balance + ?, wheel_spun = 1, wheel_prize = ?, deposit_bonus = ? WHERE tg_id = ?"),
+        (add_balance, chosen["label"], deposit_bonus, tg_id)
+    )
+    conn.commit()
+
+    cursor.execute(_q("SELECT balance, wheel_spun, wheel_prize, deposit_bonus FROM users WHERE tg_id = ?"), (tg_id,))
+    updated_user = _row_to_dict(cursor.fetchone())
+    conn.close()
+
+    return True, "Muvaffaqiyatli", chosen, updated_user["balance"], updated_user["wheel_prize"]
 
 
 def set_setting(key: str, val: str):

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=30">
+    <link rel="stylesheet" href="app.css?v=35">
 </head>
 <body>
     <div id="app">
@@ -200,42 +200,42 @@
                 <!-- Javascript to'ldiradi -->
             </div>
 
-            <!-- BIRINCHI RO'YXATDAN O'TGANINGIZ UCHUN MUKOFOT BLOKI -->
-            <div class="welcome-reward-section" id="welcomeRewardBox">
-                <div class="welcome-reward-card">
-                    <div class="reward-glow-layer"></div>
-                    <div class="reward-badge-pill">
-                        <span class="badge-gift-icon">🎁</span> RO'YXATDAN O'TISH MUKOFOTI
+            <!-- OMAD BARABANI (FORTUNE WHEEL) BO'LIMI -->
+            <div class="fortune-wheel-section" id="fortuneWheelSection">
+                <div class="fortune-wheel-card">
+                    <div class="wheel-glow-layer"></div>
+                    <div class="wheel-badge-pill">
+                        <span class="badge-wheel-icon">🎰</span> OMAD BARABANI
                     </div>
-                    <h3 class="welcome-reward-title">Birinchi ro'yxatdan o'tganingiz uchun mukofot!</h3>
-                    <p class="welcome-reward-desc">O'zingizga ma'qul bo'lgan start bonusini tanlang:</p>
+                    <h3 class="wheel-title">Omad Barabanini aylantiring!</h3>
+                    <p class="wheel-subtitle"><b>30 000 Olmos</b>, depozit bonuslari yoki boshqa sovg'alarni yutib oling!</p>
 
-                    <div class="reward-choices-grid">
-                        <div class="reward-choice-card active" id="choiceDiamonds" data-choice="diamonds">
-                            <div class="choice-glow"></div>
-                            <div class="choice-icon">💎</div>
-                            <div class="choice-amount">30 000</div>
-                            <div class="choice-title">Olmos (O'yin uchun)</div>
-                            <div class="choice-badge">Tavsiya etiladi</div>
+                    <div class="wheel-main-container">
+                        <div class="wheel-pointer-marker">
+                            <div class="pointer-triangle"></div>
                         </div>
-
-                        <div class="reward-choice-card" id="choiceCash" data-choice="cash">
-                            <div class="choice-glow"></div>
-                            <div class="choice-icon">💳</div>
-                            <div class="choice-amount">30 000 UZS</div>
-                            <div class="choice-title">Haqiqiy So'm (Pul)</div>
-                            <div class="choice-badge">Kartaga</div>
+                        
+                        <div class="wheel-outer-ring">
+                            <div class="wheel-lights-ring" id="wheelLightsRing"></div>
+                            <canvas id="wheelCanvas" width="310" height="310" class="wheel-canvas"></canvas>
+                            <div class="wheel-center-button" id="wheelCenterBtn">
+                                <div class="center-btn-inner">
+                                    <span class="center-icon">🎲</span>
+                                    <span class="center-text">SPIN</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Karta raqamini kiritish qismi (faqat naqd pul tanlanganda ko'rinadi) -->
-                    <div class="card-input-wrapper" id="cashCardInputBox" style="display:none;">
-                        <label class="card-input-label">💳 Humo / Uzcard karta raqamingiz:</label>
-                        <input type="text" id="userCardNumberInput" placeholder="8600 •••• •••• ••••" maxlength="19" class="card-num-input">
+                    <div class="wheel-controls">
+                        <button class="btn-spin-wheel" id="btnSpinWheel">
+                            <span class="spin-btn-icon">🎰</span>
+                            <span class="spin-btn-text">BARABANNI AYLANTIRISH</span>
+                        </button>
+                        <div id="wheelStatusMessage" class="wheel-status-text">
+                            🎁 Sizda 1 ta bepul aylantirish imkoniyati bor!
+                        </div>
                     </div>
-
-                    <button class="btn-claim-reward" id="btnClaimReward">MUKOFOTNI OLISH 🎉</button>
-                    <div id="rewardClaimStatus" class="reward-status-text"></div>
                 </div>
             </div>
 
@@ -619,76 +619,69 @@
             </div>
         </div>
 
-        <!-- MODAL: KARTA VA PASPORT VERIFIKATSIYASI (30 000 SO'M MUKOFOT UCHUN) -->
-        <div class="modal" id="passportModal">
-            <div class="modal-box passport-premium-modal">
-                <button class="modal-close" id="btnClosePassportModal">✕</button>
-                
-                <div class="ppm-header">
-                    <div class="ppm-shield-wrap">
-                        <span class="ppm-shield-icon">🛡️</span>
+        <!-- MODAL: OMAD BARABANI YUTUQ NATIJASI -->
+        <div class="modal" id="wheelResultModal">
+            <div class="modal-box wheel-result-popup">
+                <canvas id="wheelConfettiCanvas" class="wheel-confetti-canvas"></canvas>
+                <div class="result-celebration-head">
+                    <div class="result-glow-circle">
+                        <span class="result-icon-badge" id="wheelResultIcon">🎉</span>
                     </div>
-                    <h3 class="ppm-title">Xavfsizlik va Shaxsni Tasdiqlash</h3>
-                    <div class="ppm-subtitle">30 000 UZS Mukofotni Rasmiylashtirish</div>
+                    <h3 class="result-main-title" id="wheelResultTitle">TABRIKLAYMIZ!</h3>
                 </div>
-
-                <div class="ppm-alert-box">
-                    <div class="ppm-alert-head">
-                        <span class="ppm-alert-icon">⚠️</span>
-                        <span class="ppm-alert-title">Diqqat! Shaxsiy xavfsizlik</span>
-                    </div>
-                    <div class="ppm-alert-desc">
-                        Siz karta ma'lumotlaringiz egasi bo'lganingiz uchun va sizning xavfsizligingizni ta'minlash maqsadida <b>pasport seriya va raqamingizni</b> kiriting.
-                    </div>
-                    <div class="ppm-alert-subnote">
-                        ⚠️ <i>Iltimos, xato kiritilgan ma'lumot o'zingiz uchun ziyon bo'lishi mumkin!</i>
-                    </div>
-                </div>
-
-                <div class="ppm-card-preview">
-                    <div class="ppm-card-top">
-                        <span class="ppm-chip-icon">💳</span>
-                        <span class="ppm-network-badge">HUMO / UZCARD</span>
-                    </div>
-                    <div class="ppm-card-label">Karta raqamingiz:</div>
-                    <input type="text" id="verifyCardNumber" readonly class="ppm-card-number-input">
-                </div>
-
-                <div class="ppm-input-group">
-                    <label class="ppm-input-label" for="inputPassportData">
-                        <span>📄 Pasport seriya va raqami:</span>
-                        <span class="ppm-label-hint">Masalan: AA 1234567</span>
-                    </label>
-                    <div class="ppm-input-wrapper">
-                        <input type="text" id="inputPassportData" placeholder="AA 1234567" maxlength="15" class="ppm-field-input" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
-                    </div>
-                </div>
-
-                <button class="ppm-submit-btn" id="btnSubmitPassport">
-                    <span class="ppm-btn-text">TASDIQLASH VA 30 000 SO'MNI OLISH</span>
-                    <span class="ppm-btn-icon">🚀</span>
+                <div class="result-prize-badge" id="wheelResultPrize">30 000 OLMOS</div>
+                <p class="result-description-text" id="wheelResultDesc">Yutuq balansingizga muvaffaqiyatli qo'shildi!</p>
+                <button class="btn-result-action" id="btnWheelResultAction">
+                    <span class="action-btn-text">O'YINNI BOSHLASH</span>
+                    <span class="action-btn-icon">🚀</span>
                 </button>
-
-                <div id="passportErrorStatus" class="ppm-error-box"></div>
             </div>
         </div>
 
-        <!-- MODAL: MUKOFOT MUVAFFAQIYATLI QABUL QILINDI (O'TIB KETISH UCHUN) -->
-        <div class="modal" id="rewardSuccessModal">
-            <div class="modal-box success-celebration-box">
-                <div class="success-icon-animated">🎉</div>
-                <h3 class="success-title">Muvaffaqiyatli qabul qilindi!</h3>
-                <p class="success-desc">
-                    Sizning <b>30 000 so'm</b> naqd pul mukofotingiz qabul qilindi va tekshiruvga yuborildi.<br><br>
-                    Mablag' tez orada ko'rsatilgan kartangizga o'tkazib beriladi!
+        <!-- MODAL: REGISTRATSIYA GATE OVERLAY (RO'YXATDAN O'TMAGANLAR UCHUN TO'SIQ) -->
+        <div id="registrationGateOverlay" class="registration-gate-overlay" style="display: none;">
+            <div class="registration-gate-card">
+                <div class="gate-icon-pulse">
+                    <span class="gate-icon-symbol">🔒</span>
+                </div>
+                <h2 class="gate-title">RO'YXATDAN O'TISH MAJBURIY</h2>
+                <p class="gate-subtext">
+                    Skinoz platformasidan foydalanish, keys ochish va CS2 skinlarini yutib olish uchun avval Telegram botda <b>telefon raqamingizni</b> yuborib ro'yxatdan o'tishingiz kerak!
                 </p>
-                <div class="success-timer-badge">Asosiy sahifaga o'tilmoqda...</div>
-                <button class="btn-success-continue" id="btnSuccessGoHome">ASOSIY SAHIFAGA O'TISH 🎮</button>
+
+                <div class="gate-benefits-box">
+                    <div class="gate-benefit-row">
+                        <span class="benefit-badge">🎰</span>
+                        <div class="benefit-text">
+                            <strong>Omad Barabani</strong>
+                            <span>30 000 Olmosgacha start sovg'asi</span>
+                        </div>
+                    </div>
+                    <div class="gate-benefit-row">
+                        <span class="benefit-badge">💎</span>
+                        <div class="benefit-text">
+                            <strong>Haqiqiy CS2 Skinlari</strong>
+                            <span>Tezkor hisob to'ldirish va yechib olish</span>
+                        </div>
+                    </div>
+                    <div class="gate-benefit-row">
+                        <span class="benefit-badge">🛡️</span>
+                        <div class="benefit-text">
+                            <strong>100% Xavfsiz tizim</strong>
+                            <span>Hisobingiz to'liq himoyalangan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-gate-action" id="btnGateGoBot">
+                    <span class="gate-btn-icon">📱</span>
+                    <span class="gate-btn-text">BOTDA TELEFON RAQAMNI YUBORISH</span>
+                </button>
             </div>
         </div>
 
     </div>
 
-    <script src="app.js?v=30"></script>
+    <script src="app.js?v=36"></script>
 </body>
 </html>

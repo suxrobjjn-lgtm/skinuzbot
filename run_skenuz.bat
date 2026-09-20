@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title SKENUZ CS2 CASE BOT & MINI APP
 color 0b
 echo ======================================================

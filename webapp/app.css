@@ -1489,423 +1489,370 @@ body {
     pointer-events: none;
 }
 
-.reward-badge-pill {
+/* ======================================================
+   OMAD BARABANI (FORTUNE WHEEL) PREMIUIM GAMING DIZAYNI
+   ====================================================== */
+.fortune-wheel-section {
+    margin-bottom: 20px;
+}
+
+.fortune-wheel-card {
+    position: relative;
+    background: linear-gradient(165deg, #0d1612 0%, #060b08 100%);
+    border: 1.5px solid rgba(16, 232, 123, 0.4);
+    border-radius: 22px;
+    padding: 20px 14px 22px;
+    text-align: center;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 232, 123, 0.15);
+    overflow: hidden;
+}
+
+.wheel-glow-layer {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(16, 232, 123, 0.35) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.wheel-badge-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     background: rgba(16, 232, 123, 0.15);
     border: 1px solid var(--neon-green);
     color: var(--neon-green);
-    font-size: 10px;
-    font-weight: 800;
-    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 12px;
     border-radius: 20px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
-.welcome-reward-title {
-    font-size: 15px;
-    font-weight: 800;
+.badge-wheel-icon {
+    font-size: 13px;
+}
+
+.wheel-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
     color: #ffffff;
     margin-bottom: 4px;
-    line-height: 1.3;
+    letter-spacing: 0.5px;
 }
 
-.welcome-reward-desc {
+.wheel-subtitle {
     font-size: 12px;
     color: #94a3b8;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    line-height: 1.4;
 }
 
-.reward-choices-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
+.wheel-subtitle b {
+    color: #ffd32a;
 }
 
-.reward-choice-card {
+/* WHEEL CONTAINER VA POINTER */
+.wheel-main-container {
     position: relative;
-    background: #080d0a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 12px 10px;
-    text-align: center;
+    width: 310px;
+    height: 310px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel-pointer-marker {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 25;
+    pointer-events: none;
+}
+
+.pointer-triangle {
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid #ff3f34;
+    filter: drop-shadow(0 4px 8px rgba(255, 63, 52, 0.8));
+    position: relative;
+}
+
+.pointer-triangle::after {
+    content: '';
+    position: absolute;
+    top: -25px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 15px solid #fff;
+    opacity: 0.8;
+}
+
+.wheel-outer-ring {
+    position: relative;
+    width: 310px;
+    height: 310px;
+    border-radius: 50%;
+    padding: 8px;
+    background: radial-gradient(circle, #1e2922 60%, #0f1712 100%);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 232, 123, 0.35);
+    border: 3px solid #2d3748;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel-lights-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.wheel-light-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffd32a;
+    box-shadow: 0 0 8px #ffd32a;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.wheel-light-dot.active {
+    background: #fff;
+    box-shadow: 0 0 12px #10e87b, 0 0 20px #10e87b;
+}
+
+.wheel-canvas {
+    width: 290px;
+    height: 290px;
+    border-radius: 50%;
+    display: block;
+    box-shadow: 0 0 15px rgba(0,0,0,0.6);
+}
+
+/* CENTER BUTTON / HUB */
+.wheel-center-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #10e87b 0%, #05502c 85%);
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 22px rgba(16, 232, 123, 0.8), 0 4px 10px rgba(0,0,0,0.6);
+    z-index: 20;
     cursor: pointer;
-    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     user-select: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.reward-choice-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(16, 232, 123, 0.4);
+.wheel-center-button:active {
+    transform: translate(-50%, -50%) scale(0.94);
 }
 
-.reward-choice-card.active {
-    background: linear-gradient(135deg, #0e291b 0%, #08170f 100%);
-    border-color: var(--neon-green);
-    box-shadow: 0 4px 20px rgba(16, 232, 123, 0.25);
+.center-btn-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.reward-choice-card .choice-icon {
-    font-size: 26px;
-    margin-bottom: 4px;
+.center-icon {
+    font-size: 16px;
+    line-height: 1;
 }
 
-.reward-choice-card .choice-amount {
+.center-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    color: #031409;
+    letter-spacing: 1px;
+}
+
+/* CONTROLS */
+.wheel-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-spin-wheel {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #10e87b 0%, #00b894 100%);
+    color: #03150a;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
     font-family: 'Rajdhani', sans-serif;
     font-size: 16px;
     font-weight: 900;
-    color: #ffffff;
-    margin-bottom: 2px;
-}
-
-.reward-choice-card .choice-title {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 6px;
-}
-
-.reward-choice-card.active .choice-title {
-    color: #cbd5e1;
-}
-
-.reward-choice-card .choice-badge {
-    display: inline-block;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #64748b;
-}
-
-.reward-choice-card.active .choice-badge {
-    background: var(--neon-green);
-    color: #05140b;
-}
-
-/* Karta raqamini kiritish */
-.card-input-wrapper {
-    margin-bottom: 12px;
-    background: #060907;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 10px;
-}
-
-.card-input-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    margin-bottom: 6px;
-}
-
-.card-num-input {
-    width: 100%;
-    background: #0b120e;
-    border: 1px solid rgba(16, 232, 123, 0.3);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: #ffffff;
-    font-family: 'Rajdhani', monospace;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    outline: none;
-}
-
-.card-num-input:focus {
-    border-color: var(--neon-green);
-    box-shadow: 0 0 10px rgba(16, 232, 123, 0.2);
-}
-
-.btn-claim-reward {
-    width: 100%;
-    background: linear-gradient(135deg, #10e87b 0%, #00b894 100%);
-    color: #05140b;
-    border: none;
-    border-radius: 12px;
-    padding: 13px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 15px;
-    font-weight: 900;
     letter-spacing: 1px;
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(16, 232, 123, 0.35);
+    box-shadow: 0 6px 25px rgba(16, 232, 123, 0.45);
     transition: all 0.2s ease;
+    -webkit-appearance: none;
 }
 
-.btn-claim-reward:active {
+.btn-spin-wheel:hover {
+    box-shadow: 0 8px 30px rgba(16, 232, 123, 0.65);
+    transform: translateY(-1px);
+}
+
+.btn-spin-wheel:active {
     transform: scale(0.98);
 }
 
-.btn-claim-reward.claimed {
-    background: #1a271e;
+.btn-spin-wheel:disabled {
+    background: #19251e;
+    color: #576574;
+    border: 1px solid rgba(16, 232, 123, 0.2);
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-spin-wheel.claimed {
+    background: linear-gradient(135deg, #162a1e 0%, #0e1a13 100%);
     color: #10e87b;
-    border: 1px solid rgba(16, 232, 123, 0.3);
+    border: 1px solid rgba(16, 232, 123, 0.4);
     box-shadow: none;
     cursor: default;
 }
 
-.reward-status-text {
-    text-align: center;
+.wheel-status-text {
     font-size: 12px;
     font-weight: 700;
     color: #10e87b;
     min-height: 18px;
-    margin-top: 8px;
 }
 
-.reward-highlight-pulse {
-    animation: rewardPulse 0.9s ease-in-out infinite alternate !important;
-    border: 2px solid var(--neon-green) !important;
-    box-shadow: 0 0 35px rgba(16, 232, 123, 0.7), 0 0 15px rgba(16, 232, 123, 0.4) inset !important;
-}
-
-@keyframes rewardPulse {
-    0% {
-        transform: scale(0.98);
-        box-shadow: 0 0 20px rgba(16, 232, 123, 0.4);
-    }
-    100% {
-        transform: scale(1.02);
-        box-shadow: 0 0 40px rgba(16, 232, 123, 0.9);
-    }
-}
-
-/* PASPORT VA KARTA TASDIQLASH PREMUM MODAL */
-/* PASPORT VA KARTA TASDIQLASH PREMUM MODAL */
-.passport-premium-modal {
-    max-width: 440px;
-    width: 94% !important;
-    background: linear-gradient(165deg, #0f1913 0%, #050a07 100%) !important;
-    border: 2px solid rgba(16, 232, 123, 0.55) !important;
-    border-radius: 26px !important;
-    padding: 24px 20px 26px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.98), 0 0 45px rgba(16, 232, 123, 0.2) !important;
+/* YUTUQ POPUP MODAL */
+.wheel-result-popup {
+    max-width: 380px;
+    width: 90% !important;
+    background: linear-gradient(165deg, #0e1913 0%, #050a07 100%) !important;
+    border: 2px solid #10e87b !important;
+    border-radius: 24px !important;
+    padding: 30px 20px 24px !important;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 50px rgba(16, 232, 123, 0.3) !important;
     position: relative;
+    overflow: hidden;
     box-sizing: border-box !important;
 }
 
-.ppm-header {
-    text-align: center;
-    margin-bottom: 16px;
+.wheel-confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
 }
 
-.ppm-shield-wrap {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 10px;
-    background: radial-gradient(circle, rgba(16, 232, 123, 0.3) 0%, rgba(16, 232, 123, 0.05) 70%);
-    border: 2px solid rgba(16, 232, 123, 0.6);
+.result-celebration-head {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 12px;
+}
+
+.result-glow-circle {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 12px;
     border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 232, 123, 0.3) 0%, transparent 70%);
+    border: 2px solid #10e87b;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 26px rgba(16, 232, 123, 0.45);
+    box-shadow: 0 0 30px rgba(16, 232, 123, 0.5);
+    animation: resultPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.ppm-shield-icon {
-    font-size: 30px;
+@keyframes resultPop {
+    0% { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.result-icon-badge {
+    font-size: 40px;
     line-height: 1;
 }
 
-.ppm-title {
+.result-main-title {
     font-family: 'Rajdhani', sans-serif !important;
-    font-size: 22px !important;
+    font-size: 24px !important;
     font-weight: 900 !important;
     color: #ffffff !important;
-    margin-bottom: 4px !important;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
 }
 
-.ppm-subtitle {
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    color: #10e87b !important;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-}
-
-/* Ogohlantirish bloki */
-.ppm-alert-box {
-    background: linear-gradient(135deg, rgba(241, 196, 15, 0.12) 0%, rgba(230, 126, 34, 0.06) 100%) !important;
-    border: 1.5px solid rgba(241, 196, 15, 0.5) !important;
-    border-radius: 16px !important;
-    padding: 13px 15px !important;
-    margin-bottom: 15px !important;
-    text-align: left;
-}
-
-.ppm-alert-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-}
-
-.ppm-alert-icon {
-    font-size: 18px;
-}
-
-.ppm-alert-title {
-    font-size: 13.5px !important;
-    font-weight: 900 !important;
-    color: #f1c40f !important;
-    letter-spacing: 0.5px;
-}
-
-.ppm-alert-desc {
-    font-size: 13px !important;
-    line-height: 1.5 !important;
-    color: #cbd5e1 !important;
-    margin-bottom: 8px !important;
-}
-
-.ppm-alert-desc b {
-    color: #f1c40f !important;
-    text-decoration: underline;
-}
-
-.ppm-alert-subnote {
-    font-size: 12px !important;
-    color: #ff7675 !important;
-    font-weight: 700 !important;
-    background: rgba(255, 118, 117, 0.12) !important;
-    border-radius: 8px !important;
-    padding: 6px 10px !important;
-    line-height: 1.4 !important;
-    border: 1px solid rgba(255, 118, 117, 0.3) !important;
-}
-
-/* Karta preview bloki (Katta va yaqqol ajralib turadi) */
-.ppm-card-preview {
-    background: linear-gradient(135deg, #13241b 0%, #08130b 100%) !important;
-    border: 2px solid rgba(16, 232, 123, 0.5) !important;
-    border-radius: 16px !important;
-    padding: 14px 16px !important;
-    margin-bottom: 15px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-    text-align: left;
-}
-
-.ppm-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.ppm-chip-icon {
-    font-size: 20px;
-}
-
-.ppm-network-badge {
-    font-size: 11px !important;
-    font-weight: 900 !important;
-    background: rgba(16, 232, 123, 0.2) !important;
-    color: #10e87b !important;
-    border: 1.5px solid rgba(16, 232, 123, 0.5) !important;
-    padding: 3px 10px !important;
-    border-radius: 12px !important;
-    letter-spacing: 0.8px;
-}
-
-.ppm-card-label {
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    color: #94a3b8 !important;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-}
-
-.ppm-card-number-input {
-    width: 100% !important;
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    color: #10e87b !important;
-    font-family: 'Rajdhani', monospace !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    letter-spacing: 3px !important;
-    padding: 2px 0 !important;
-    -webkit-appearance: none !important;
-    text-shadow: 0 0 10px rgba(16, 232, 123, 0.5) !important;
-}
-
-/* Pasport input (Katta va qulay diapazon) */
-.ppm-input-group {
-    margin-bottom: 18px;
-    text-align: left;
-}
-
-.ppm-input-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    color: #cbd5e1 !important;
-    margin-bottom: 8px;
-}
-
-.ppm-label-hint {
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    color: #10e87b !important;
-    background: rgba(16, 232, 123, 0.15) !important;
-    border: 1px solid rgba(16, 232, 123, 0.3) !important;
-    padding: 2px 8px !important;
-    border-radius: 6px;
-}
-
-.ppm-input-wrapper {
+.result-prize-badge {
     position: relative;
-    display: flex;
-    align-items: center;
+    z-index: 5;
+    display: inline-block;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 16px;
+    color: #ffd32a;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
 }
 
-.ppm-field-input {
+.result-description-text {
+    position: relative;
+    z-index: 5;
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.btn-result-action {
+    position: relative;
+    z-index: 5;
     width: 100% !important;
-    min-height: 56px !important;
-    background: #07120a !important;
-    border: 2px solid rgba(16, 232, 123, 0.6) !important;
-    border-radius: 16px !important;
-    color: #ffffff !important;
-    padding: 14px 16px !important;
-    font-family: 'Rajdhani', monospace !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    letter-spacing: 3px !important;
-    outline: none !important;
-    text-transform: uppercase !important;
-    -webkit-appearance: none !important;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 15px rgba(16, 232, 123, 0.15) !important;
-    box-sizing: border-box !important;
-    transition: all 0.25s ease;
-}
-
-.ppm-field-input:focus {
-    border-color: #10e87b !important;
-    box-shadow: 0 0 25px rgba(16, 232, 123, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.6) !important;
-    background: #09170e !important;
-}
-
-.ppm-field-input::placeholder {
-    color: #475569 !important;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-/* Tasdiqlash tugmasi (Katta, qalin, chiroyli nurli) */
-.ppm-submit-btn {
-    width: 100% !important;
-    min-height: 56px !important;
+    min-height: 52px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1913,102 +1860,20 @@ body {
     background: linear-gradient(135deg, #10e87b 0%, #00b894 100%) !important;
     color: #03150a !important;
     border: none !important;
-    border-radius: 16px !important;
-    padding: 16px 14px !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
     font-family: 'Rajdhani', sans-serif !important;
     font-size: 16px !important;
     font-weight: 900 !important;
     letter-spacing: 1px !important;
     cursor: pointer !important;
-    box-shadow: 0 6px 30px rgba(16, 232, 123, 0.5) !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    box-shadow: 0 6px 25px rgba(16, 232, 123, 0.45) !important;
+    transition: all 0.2s ease !important;
     -webkit-appearance: none !important;
-    box-sizing: border-box !important;
 }
 
-.ppm-submit-btn:active {
+.btn-result-action:active {
     transform: scale(0.98) !important;
-}
-
-.ppm-submit-btn:disabled {
-    background: #1e2922 !important;
-    color: #64748b !important;
-    box-shadow: none !important;
-    cursor: not-allowed !important;
-}
-
-.ppm-error-box {
-    color: #ff7675;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    text-align: center;
-    min-height: 18px;
-    margin-top: 10px;
-}
-
-/* SUCCESS CELEBRATION MODAL */
-.success-celebration-box {
-    max-width: 380px;
-    width: 90% !important;
-    background: linear-gradient(165deg, #0d1712 0%, #050a07 100%) !important;
-    border: 2px solid #10e87b !important;
-    border-radius: 24px !important;
-    padding: 28px 20px 24px !important;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 45px rgba(16, 232, 123, 0.25) !important;
-    box-sizing: border-box !important;
-}
-
-.success-icon-animated {
-    font-size: 52px;
-    margin-bottom: 12px;
-    animation: successBounce 1.2s ease infinite alternate;
-}
-
-@keyframes successBounce {
-    0% { transform: scale(0.9) rotate(-4deg); }
-    100% { transform: scale(1.1) rotate(4deg); }
-}
-
-.success-title {
-    font-family: 'Rajdhani', sans-serif !important;
-    font-size: 22px !important;
-    font-weight: 900 !important;
-    color: #10e87b !important;
-    margin-bottom: 10px !important;
-}
-
-.success-desc {
-    font-size: 13px;
-    line-height: 1.5;
-    color: #cbd5e1;
-    margin-bottom: 16px;
-}
-
-.success-desc b {
-    color: #ffffff;
-}
-
-.success-timer-badge {
-    font-size: 11px;
-    font-weight: 700;
-    color: #64748b;
-    margin-bottom: 14px;
-}
-
-.btn-success-continue {
-    width: 100% !important;
-    background: linear-gradient(135deg, #10e87b 0%, #00b894 100%) !important;
-    color: #03150a !important;
-    border: none !important;
-    border-radius: 14px !important;
-    padding: 14px 10px !important;
-    font-family: 'Rajdhani', sans-serif !important;
-    font-size: 15px !important;
-    font-weight: 900 !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 20px rgba(16, 232, 123, 0.4) !important;
-    -webkit-appearance: none !important;
 }
 
 /* MODALLARNING YOPISH (X) TUGMASI */
@@ -2172,4 +2037,181 @@ body {
 .btn-game-back:active {
     background: rgba(255, 255, 255, 0.2) !important;
     transform: scale(0.95) !important;
+}
+
+/* ========================================================
+   REGISTRATSIYA GATE OVERLAY (RO'YXATDAN O'TMAGANLAR UCHUN)
+   ======================================================== */
+.registration-gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: radial-gradient(circle at 50% 30%, rgba(16, 232, 123, 0.12) 0%, rgba(5, 8, 6, 0.98) 75%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeInOverlay 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.registration-gate-card {
+    width: 100%;
+    max-width: 380px;
+    background: linear-gradient(165deg, #0f1913 0%, #080e0a 100%);
+    border: 1px solid rgba(16, 232, 123, 0.35);
+    border-radius: 22px;
+    padding: 28px 22px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 232, 123, 0.2);
+    text-align: center;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.registration-gate-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(16, 232, 123, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.gate-icon-pulse {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(16, 232, 123, 0.2) 0%, rgba(0, 184, 148, 0.08) 100%);
+    border: 2px solid rgba(16, 232, 123, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 25px rgba(16, 232, 123, 0.35);
+    animation: pulseGateIcon 2s infinite ease-in-out;
+}
+
+@keyframes pulseGateIcon {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(16, 232, 123, 0.3); }
+    50% { transform: scale(1.06); box-shadow: 0 0 32px rgba(16, 232, 123, 0.55); }
+}
+
+.gate-icon-symbol {
+    font-size: 34px;
+    line-height: 1;
+}
+
+.gate-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin: 0 0 10px 0;
+    text-shadow: 0 0 12px rgba(16, 232, 123, 0.4);
+}
+
+.gate-subtext {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #94a3b8;
+    margin: 0 0 18px 0;
+}
+
+.gate-subtext b {
+    color: #ffffff;
+}
+
+.gate-benefits-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px 14px;
+    text-align: left;
+}
+
+.gate-benefit-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.benefit-badge {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 232, 123, 0.1);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.benefit-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.benefit-text strong {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+.benefit-text span {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: #10e87b;
+}
+
+.btn-gate-action {
+    width: 100%;
+    background: linear-gradient(135deg, #10e87b 0%, #00b894 100%) !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 15px 16px !important;
+    color: #03150a !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.8px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 25px rgba(16, 232, 123, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+}
+
+.btn-gate-action:active {
+    transform: scale(0.97) !important;
+    box-shadow: 0 2px 12px rgba(16, 232, 123, 0.3) !important;
+}
+
+.gate-btn-icon {
+    font-size: 18px;
+}
+
+.gate-btn-text {
+    line-height: 1;
 }

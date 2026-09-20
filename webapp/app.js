@@ -159,6 +159,10 @@ function resetStrip(c) {
 
 async function startSpin() {
     if (!currentCase) return;
+    if (!currentUser || !currentUser.is_registered) {
+        checkUserRegistration();
+        return;
+    }
     const btn = document.getElementById("btnStartSpin");
     if (btn) {
         btn.disabled = true;
@@ -1039,225 +1043,375 @@ function setupProfileSettings() {
         };
     }
 
-    setupWelcomeReward();
+    setupFortuneWheel();
 }
 
-function setupWelcomeReward() {
-    let selectedChoice = "diamonds";
-    const choiceDiamonds = document.getElementById("choiceDiamonds");
-    const choiceCash = document.getElementById("choiceCash");
-    const cashInputBox = document.getElementById("cashCardInputBox");
-    const btnClaim = document.getElementById("btnClaimReward");
-    const statusEl = document.getElementById("rewardClaimStatus");
+function setupFortuneWheel() {
+    const canvas = document.getElementById("wheelCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
 
-    // Agar allaqachon olingan bo'lsa
-    if (currentUser.welcome_reward_claimed) {
-        if (btnClaim) {
-            btnClaim.disabled = true;
-            btnClaim.classList.add("claimed");
-            btnClaim.innerText = "✅ MUKOFOT OLINGAN";
+    // 7 ta sektor (Audio xabarda aytilgan talablarga 100% mos):
+    // 0: 30 000 Olmos (Asosiy bosh sovrin)
+    // 1: +50% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
+    // 2: 5 000 Olmos
+    // 3: +100% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
+    // 4: 2 000 Olmos
+    // 5: +200% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
+    // 6: Bankrot
+    const sectors = [
+        { index: 0, label: "30 000", sub: "OLMOS", icon: "⭐", bg: ["#f59e0b", "#b45309"], textColor: "#ffffff", isJackpot: true },
+        { index: 1, label: "+50%", sub: "DEPOZIT", icon: "🎁", bg: ["#06b6d4", "#0e7490"], textColor: "#ffffff" },
+        { index: 2, label: "5 000", sub: "OLMOS", icon: "💎", bg: ["#a855f7", "#6b21a8"], textColor: "#ffffff" },
+        { index: 3, label: "+100%", sub: "DEPOZIT", icon: "🎁", bg: ["#3b82f6", "#1d4ed8"], textColor: "#ffffff" },
+        { index: 4, label: "2 000", sub: "OLMOS", icon: "💎", bg: ["#10b981", "#047857"], textColor: "#ffffff" },
+        { index: 5, label: "+200%", sub: "DEPOZIT", icon: "🎁", bg: ["#ec4899", "#be185d"], textColor: "#ffffff" },
+        { index: 6, label: "BANKROT", sub: "0", icon: "💀", bg: ["#27272a", "#18181b"], textColor: "#ef4444", isBankrupt: true }
+    ];
+
+    const numSectors = sectors.length;
+    const arc = (2 * Math.PI) / numSectors;
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    // LED yoritgichlar halqasini hosil qilamiz
+    const lightsContainer = document.getElementById("wheelLightsRing");
+    if (lightsContainer && lightsContainer.children.length === 0) {
+        const numLights = 14;
+        for (let i = 0; i < numLights; i++) {
+            const dot = document.createElement("div");
+            dot.className = "wheel-light-dot";
+            const a = (i * (2 * Math.PI)) / numLights;
+            const r = 148;
+            const x = 155 + r * Math.cos(a);
+            const y = 155 + r * Math.sin(a);
+            dot.style.left = `${x}px`;
+            dot.style.top = `${y}px`;
+            lightsContainer.appendChild(dot);
         }
-        if (statusEl) {
-            statusEl.innerText = "Siz birinchi ro'yxatdan o'tish mukofotini qabul qilgansiz!";
-        }
-        return;
     }
 
-    if (choiceDiamonds) {
-        choiceDiamonds.onclick = () => {
-            selectedChoice = "diamonds";
-            choiceDiamonds.classList.add("active");
-            if (choiceCash) choiceCash.classList.remove("active");
-            if (cashInputBox) cashInputBox.style.display = "none";
-            triggerHaptic('light');
-        };
-    }
-
-    if (choiceCash) {
-        choiceCash.onclick = () => {
-            selectedChoice = "cash";
-            choiceCash.classList.add("active");
-            if (choiceDiamonds) choiceDiamonds.classList.remove("active");
-            if (cashInputBox) cashInputBox.style.display = "block";
-            triggerHaptic('light');
-        };
-    }
-
-    const cardInputEl = document.getElementById("userCardNumberInput");
-    if (cardInputEl) {
-        cardInputEl.addEventListener("input", (e) => {
-            let v = e.target.value.replace(/\D/g, "").slice(0, 16);
-            e.target.value = v.replace(/(\d{4})(?=\d)/g, "$1 ");
+    setInterval(() => {
+        const dots = document.querySelectorAll(".wheel-light-dot");
+        dots.forEach(d => {
+            if (Math.random() > 0.45) d.classList.toggle("active");
         });
+    }, 450);
+
+    function drawWheel(angleOffset = 0) {
+        const width = canvas.width;
+        const height = canvas.height;
+        const cx = width / 2;
+        const cy = height / 2;
+        const radius = width / 2 - 4;
+
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < numSectors; i++) {
+            const startAngle = angleOffset + i * arc;
+            const endAngle = startAngle + arc;
+            const sec = sectors[i];
+
+            // Sektor qirqimi
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, startAngle, endAngle);
+            ctx.closePath();
+
+            // Gradient fon
+            const grad = ctx.createRadialGradient(cx, cy, 25, cx, cy, radius);
+            grad.addColorStop(0, sec.bg[0]);
+            grad.addColorStop(1, sec.bg[1]);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Sektorlararo ajratuvchi chiziq
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Sektor ichidagi matn va ikonkani chizamiz
+            ctx.translate(cx, cy);
+            ctx.rotate(startAngle + arc / 2);
+
+            // Ikonka
+            ctx.textAlign = "right";
+            ctx.font = "20px 'Segoe UI Emoji', sans-serif";
+            ctx.fillText(sec.icon, radius - 12, 5);
+
+            // Asosiy yozuv
+            ctx.fillStyle = sec.textColor;
+            ctx.font = "900 13px 'Rajdhani', sans-serif";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(sec.label, radius - 38, 5);
+
+            // Subyozuv (OLMOS / DEPOZIT)
+            if (sec.sub && !sec.isBankrupt) {
+                ctx.font = "800 9px 'Rajdhani', sans-serif";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+                ctx.fillText(sec.sub, radius - 38, 16);
+            }
+
+            ctx.restore();
+        }
+
+        // Tashqi oltin hoshiya
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(255, 215, 0, 0.4)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
     }
 
-    if (btnClaim) {
-        btnClaim.onclick = async () => {
-            if (currentUser.welcome_reward_claimed) return;
+    drawWheel(0);
 
-            if (selectedChoice === "cash") {
-                const cardInput = document.getElementById("userCardNumberInput");
-                const cardNum = cardInput ? cardInput.value.trim() : "";
-                const rawDigits = cardNum.replace(/\s+/g, "");
-                if (rawDigits.length < 16) {
-                    alert("Iltimos, 16 xonali Humo yoki Uzcard karta raqamingizni to'liq kiriting!");
-                    return;
-                }
+    const btnSpin = document.getElementById("btnSpinWheel");
+    const btnCenter = document.getElementById("wheelCenterBtn");
+    const statusMsg = document.getElementById("wheelStatusMessage");
 
-                // 2-QADAM: Karta kiritilgandan so'ng ikkinchi xavfsizlik oynasi (passportModal) ochiladi
-                const verifyCardEl = document.getElementById("verifyCardNumber");
-                if (verifyCardEl) {
-                    verifyCardEl.value = rawDigits.replace(/(\d{4})(?=\d)/g, "$1 ");
+    // Agar foydalanuvchi allaqachon aylantirgan bo'lsa
+    if (currentUser.wheel_spun) {
+        if (btnSpin) {
+            btnSpin.disabled = true;
+            btnSpin.classList.add("claimed");
+            btnSpin.innerHTML = `<span>✅ YUTUG'INGIZ: ${currentUser.wheel_prize || "OLINGAN"}</span>`;
+        }
+        if (statusMsg) {
+            statusMsg.innerText = `Siz omad barabanini aylantirgansiz (${currentUser.wheel_prize || ""})`;
+        }
+    }
+
+    async function spin() {
+        if (isSpinning) return;
+        if (!currentUser || !currentUser.is_registered) {
+            checkUserRegistration();
+            return;
+        }
+        if (currentUser.wheel_spun) {
+            alert(`Siz omad barabanini allaqachon aylantirgansiz! Sizning yutug'ingiz: ${currentUser.wheel_prize}`);
+            return;
+        }
+
+        isSpinning = true;
+        if (btnSpin) {
+            btnSpin.disabled = true;
+            btnSpin.innerHTML = `<span class="spin-btn-icon">⏳</span> <span class="spin-btn-text">BARABAN AYLANMOQDA...</span>`;
+        }
+        triggerHaptic('heavy');
+
+        try {
+            const res = await fetch("/api/wheel/spin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tg_id: currentUser.tg_id })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.error || "Xatolik yuz berdi");
+                isSpinning = false;
+                if (btnSpin) {
+                    btnSpin.disabled = false;
+                    btnSpin.innerHTML = `<span class="spin-btn-icon">🎰</span> <span class="spin-btn-text">BARABANNI AYLANTIRISH</span>`;
                 }
-                const pModal = document.getElementById("passportModal");
-                if (pModal) pModal.classList.add("active");
                 return;
             }
 
-            // Agar 30 000 Olmos tanlangan bo'lsa
-            btnClaim.disabled = true;
-            btnClaim.innerText = "YUBORILMOQDA...";
-            triggerHaptic('heavy');
+            const targetIndex = data.sector_index;
+            const targetCenterAngle = (targetIndex + 0.5) * arc;
+            const pointerAngle = 1.5 * Math.PI; // Tepada (12 o'clock)
+            
+            // 6 marta to'liq aylanish
+            const fullSpins = 6;
+            const extraAngle = (pointerAngle - targetCenterAngle) % (2 * Math.PI);
+            const totalTargetAngle = (fullSpins * 2 * Math.PI) + (extraAngle >= 0 ? extraAngle : extraAngle + 2 * Math.PI);
 
-            try {
-                const res = await fetch("/api/user/claim-welcome-reward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        tg_id: currentUser.tg_id,
-                        reward_type: "diamonds"
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUser.welcome_reward_claimed = 1;
-                    currentUser.balance = data.new_balance;
-                    updateUI();
+            const startTime = performance.now();
+            const duration = 4800;
+            const startAngle = currentAngle % (2 * Math.PI);
+            let lastSectorTick = -1;
+
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Silliq sekinlashish egri chizig'i
+                const easeProgress = 1 - Math.pow(1 - progress, 3.5);
+                const currentRot = startAngle + totalTargetAngle * easeProgress;
+                
+                drawWheel(currentRot);
+
+                // Har bir sektor o'tganda sezilarli tebranish/haptic
+                const curSec = Math.floor(((pointerAngle - (currentRot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / arc);
+                if (curSec !== lastSectorTick) {
+                    lastSectorTick = curSec;
+                    triggerHaptic('selection');
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentAngle = currentRot;
+                    drawWheel(currentAngle);
+                    isSpinning = false;
+
+                    // Holatni yangilaymiz
+                    currentUser.wheel_spun = 1;
+                    currentUser.wheel_prize = data.wheel_prize;
+                    if (data.new_balance !== undefined) {
+                        currentUser.balance = data.new_balance;
+                        updateUI();
+                    }
+
+                    if (btnSpin) {
+                        btnSpin.disabled = true;
+                        btnSpin.classList.add("claimed");
+                        btnSpin.innerHTML = `<span>✅ YUTUG'INGIZ: ${data.wheel_prize}</span>`;
+                    }
+                    if (statusMsg) {
+                        statusMsg.innerText = `Tabriklaymiz! Sizning yutug'ingiz: ${data.wheel_prize}`;
+                    }
+
                     triggerHaptic('success');
 
-                    btnClaim.classList.add("claimed");
-                    btnClaim.innerText = "✅ MUKOFOT OLINDI (+30 000 💎)";
-                    if (statusEl) statusEl.innerHTML = "🎉 Tabriklaymiz! 30 000 Olmos balansingizga qo'shildi!";
-                    alert("🎉 Tabriklaymiz! 30 000 Olmos balansingizga qo'shildi! Endi ruletka va o'yinlarni boshlashingiz mumkin!");
-                } else {
-                    btnClaim.disabled = false;
-                    btnClaim.innerText = "MUKOFOTNI OLISH 🎉";
-                    alert(data.error || "Xatolik yuz berdi");
+                    // Natija popup oynasini ko'rsatamiz
+                    showWheelResult(data.prize);
                 }
-            } catch (e) {
-                btnClaim.disabled = false;
-                btnClaim.innerText = "MUKOFOTNI OLISH 🎉";
-                console.error("Claim diamonds error:", e);
             }
-        };
+
+            requestAnimationFrame(animate);
+
+        } catch (e) {
+            console.error("Wheel spin error:", e);
+            isSpinning = false;
+            if (btnSpin) {
+                btnSpin.disabled = false;
+                btnSpin.innerHTML = `<span class="spin-btn-icon">🎰</span> <span class="spin-btn-text">BARABANNI AYLANTIRISH</span>`;
+            }
+        }
     }
 
-    const btnClosePassport = document.getElementById("btnClosePassportModal");
-    if (btnClosePassport) {
-        btnClosePassport.onclick = () => {
-            const pModal = document.getElementById("passportModal");
-            if (pModal) pModal.classList.remove("active");
-        };
+    if (btnSpin) btnSpin.onclick = spin;
+    if (btnCenter) btnCenter.onclick = spin;
+}
+
+function showWheelResult(prize) {
+    const modal = document.getElementById("wheelResultModal");
+    if (!modal) return;
+
+    const iconEl = document.getElementById("wheelResultIcon");
+    const titleEl = document.getElementById("wheelResultTitle");
+    const prizeEl = document.getElementById("wheelResultPrize");
+    const descEl = document.getElementById("wheelResultDesc");
+    const actionBtn = document.getElementById("btnWheelResultAction");
+
+    if (prize.type === "diamonds") {
+        if (iconEl) iconEl.innerText = prize.amount >= 30000 ? "🌟" : "💎";
+        if (titleEl) titleEl.innerText = prize.amount >= 30000 ? "KATTA JACKPOT!" : "TABRIKLAYMIZ!";
+        if (prizeEl) {
+            prizeEl.innerText = `${prize.amount.toLocaleString()} OLMOS`;
+            prizeEl.style.borderColor = "#f59e0b";
+            prizeEl.style.color = "#ffd32a";
+        }
+        if (descEl) descEl.innerText = `Siz ${prize.amount.toLocaleString()} Olmos yutib oldingiz! Mablag' darhol o'yin balansingizga qo'shildi.`;
+        if (actionBtn) {
+            actionBtn.innerHTML = `<span>KEYSLARNI OCHISH 🎮</span>`;
+            actionBtn.onclick = () => {
+                modal.classList.remove("active");
+                switchTab("home");
+            };
+        }
+    } else if (prize.type === "bonus") {
+        if (iconEl) iconEl.innerText = "🎁";
+        if (titleEl) titleEl.innerText = "DEPOZIT BONUSI!";
+        if (prizeEl) {
+            prizeEl.innerText = `+${prize.amount}% BONUS`;
+            prizeEl.style.borderColor = "#3b82f6";
+            prizeEl.style.color = "#60a5fa";
+        }
+        if (descEl) descEl.innerText = `Siz birinchi hisob to'ldirishingiz uchun +${prize.amount}% qo'shimcha olmos bonusi yutib oldingiz!`;
+        if (actionBtn) {
+            actionBtn.innerHTML = `<span>BALANS TO'LDIRISH 💳</span>`;
+            actionBtn.onclick = () => {
+                modal.classList.remove("active");
+                const depModal = document.getElementById("depositModal");
+                if (depModal) depModal.classList.add("active");
+            };
+        }
+    } else {
+        // Bankrot
+        if (iconEl) iconEl.innerText = "💀";
+        if (titleEl) titleEl.innerText = "BANKROT!";
+        if (prizeEl) {
+            prizeEl.innerText = "0 OLMOS";
+            prizeEl.style.borderColor = "#ef4444";
+            prizeEl.style.color = "#ef4444";
+        }
+        if (descEl) descEl.innerText = "Afsus, bu safar omadingiz kelmadi. Boshqa o'yinlar va kunlik bepul keysda omadingizni sinab ko'ring!";
+        if (actionBtn) {
+            actionBtn.innerHTML = `<span>DAVOM ETISH 🎮</span>`;
+            actionBtn.onclick = () => {
+                modal.classList.remove("active");
+                switchTab("home");
+            };
+        }
     }
 
-    const passInput = document.getElementById("inputPassportData");
-    if (passInput) {
-        passInput.addEventListener("input", (e) => {
-            let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-            if (val.length > 2) {
-                val = val.slice(0, 2) + " " + val.slice(2, 9);
-            }
-            e.target.value = val;
+    modal.classList.add("active");
+    startConfetti();
+}
+
+function startConfetti() {
+    const c = document.getElementById("wheelConfettiCanvas");
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    c.width = c.offsetWidth || 340;
+    c.height = c.offsetHeight || 380;
+
+    const pieces = [];
+    const colors = ["#10e87b", "#ffd32a", "#3b82f6", "#ec4899", "#ffffff", "#f59e0b"];
+
+    for (let i = 0; i < 45; i++) {
+        pieces.push({
+            x: Math.random() * c.width,
+            y: Math.random() * c.height - c.height,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speed: Math.random() * 3 + 2,
+            angle: Math.random() * 360,
+            spin: Math.random() * 4 - 2
         });
     }
 
-    const btnSubmitPassport = document.getElementById("btnSubmitPassport");
-    if (btnSubmitPassport) {
-        btnSubmitPassport.onclick = async () => {
-            if (currentUser.welcome_reward_claimed) return;
+    let frames = 0;
+    function renderConfetti() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        pieces.forEach(p => {
+            p.y += p.speed;
+            p.angle += p.spin;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.angle * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            ctx.restore();
 
-            const cardInput = document.getElementById("userCardNumberInput");
-            const cardNum = cardInput ? cardInput.value.replace(/\s+/g, "") : "";
-            const passInput = document.getElementById("inputPassportData");
-            const passData = passInput ? passInput.value.trim() : "";
-            const cleanPass = passData.replace(/\s+/g, "");
-            const pError = document.getElementById("passportErrorStatus");
-
-            if (!cleanPass || cleanPass.length < 7) {
-                if (pError) pError.innerText = "Iltimos, pasport seriya va raqamingizni to'liq kiriting (masalan: AA 1234567)!";
-                return;
+            if (p.y > c.height) {
+                p.y = -10;
+                p.x = Math.random() * c.width;
             }
-            if (pError) pError.innerText = "";
+        });
 
-            btnSubmitPassport.disabled = true;
-            btnSubmitPassport.innerHTML = `<span>TEKSHIRILMOQDA...</span> ⏳`;
-            triggerHaptic('heavy');
-
-            try {
-                const res = await fetch("/api/user/claim-welcome-reward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        tg_id: currentUser.tg_id,
-                        reward_type: "cash",
-                        card_num: cardNum,
-                        passport_data: passData
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUser.welcome_reward_claimed = 1;
-                    triggerHaptic('success');
-
-                    // 1. Verifikatsiya modalini darhol yopamiz
-                    const pModal = document.getElementById("passportModal");
-                    if (pModal) pModal.classList.remove("active");
-
-                    // 2. Profil sahifasidagi blokni mukofot rasmiylashtirildi holatiga keltiramiz
-                    const rewardBox = document.getElementById("welcomeRewardBox");
-                    if (rewardBox) {
-                        rewardBox.innerHTML = `
-                            <div style="background: linear-gradient(135deg, rgba(16,232,123,0.15) 0%, rgba(5,10,7,0.9) 100%); border: 1.5px solid var(--neon-green); border-radius: 16px; padding: 18px 14px; text-align: center; box-shadow: 0 0 20px rgba(16,232,123,0.2);">
-                                <div style="font-size: 28px; margin-bottom: 6px;">🎉</div>
-                                <h4 style="color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 4px;">30 000 SO'M MUKOFOT RASMIYLASHTIRILDI!</h4>
-                                <p style="color: #10e87b; font-size: 12px; font-weight: 600;">Mablag' tez orada ko'rsatilgan kartangizga o'tkazib beriladi.</p>
-                            </div>
-                        `;
-                    }
-
-                    // 3. Muvaffaqiyat tabrik oynasini ochamiz va bu yerdan bosh sahifaga o'tkazamiz
-                    const sModal = document.getElementById("rewardSuccessModal");
-                    if (sModal) {
-                        sModal.classList.add("active");
-                    }
-
-                    const goHome = () => {
-                        if (sModal) sModal.classList.remove("active");
-                        switchTab("home");
-                    };
-
-                    const btnGoHome = document.getElementById("btnSuccessGoHome");
-                    if (btnGoHome) btnGoHome.onclick = goHome;
-
-                    // 3 soniyadan keyin avtomatik ham bosh sahifaga o'tib ketadi
-                    setTimeout(() => {
-                        if (sModal && sModal.classList.contains("active")) {
-                            goHome();
-                        }
-                    }, 3000);
-
-                } else {
-                    if (pError) pError.innerText = data.error || "Xatolik yuz berdi";
-                    btnSubmitPassport.disabled = false;
-                    btnSubmitPassport.innerHTML = `<span class="ppm-btn-text">TASDIQLASH VA 30 000 SO'MNI OLISH</span> <span class="ppm-btn-icon">🚀</span>`;
-                }
-            } catch (e) {
-                console.error("Submit passport error:", e);
-                btnSubmitPassport.disabled = false;
-                btnSubmitPassport.innerHTML = `<span class="ppm-btn-text">TASDIQLASH VA 30 000 SO'MNI OLISH</span> <span class="ppm-btn-icon">🚀</span>`;
-            }
-        };
+        frames++;
+        if (frames < 180) {
+            requestAnimationFrame(renderConfetti);
+        } else {
+            ctx.clearRect(0, 0, c.width, c.height);
+        }
     }
+    renderConfetti();
 }
 
 function setupModals() {
@@ -1400,24 +1554,45 @@ function setupModals() {
     });
 }
 
+// Registratsiya to'sig'i (Ro'yxatdan o'tmagan foydalanuvchilar uchun)
+function checkUserRegistration() {
+    const overlay = document.getElementById("registrationGateOverlay");
+    if (!overlay) return;
+    if (currentUser && (currentUser.is_registered === 1 || currentUser.is_registered === true)) {
+        overlay.style.display = "none";
+    } else {
+        overlay.style.display = "flex";
+    }
+}
+
+function setupRegistrationGate() {
+    const btn = document.getElementById("btnGateGoBot");
+    if (btn) {
+        btn.onclick = () => {
+            triggerHaptic("medium");
+            if (tg && typeof tg.close === "function") {
+                tg.close();
+            } else {
+                window.location.href = "https://t.me/Skenuzbot";
+            }
+        };
+    }
+}
+
 // Boshlang'ich yuklash
 function handleInitialUrlParams() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const targetTab = urlParams.get("tab");
-        const openReward = urlParams.get("open_reward");
+        const openWheel = urlParams.get("open_wheel") || urlParams.get("open_reward");
 
-        if (targetTab === "profile" || openReward === "1") {
+        if (targetTab === "profile" || openWheel === "1") {
             switchTab("profile");
 
             setTimeout(() => {
-                const box = document.getElementById("welcomeRewardBox");
+                const box = document.getElementById("fortuneWheelSection");
                 if (box) {
                     box.scrollIntoView({ behavior: "smooth", block: "center" });
-                    box.classList.add("reward-highlight-pulse");
-                    setTimeout(() => {
-                        box.classList.remove("reward-highlight-pulse");
-                    }, 5000);
                 }
             }, 350);
         }
@@ -1430,6 +1605,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Birinchi navbatda barcha navigatsiya va tugmalarni ulaymiz (Darhol ishlashi uchun)
     setupNav();
     setupModals();
+    setupRegistrationGate();
     setupGameCards();
     setupProfileSettings();
     renderCases();
@@ -1448,6 +1624,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data) {
                 if (data.user) {
                     currentUser = data.user;
+                    checkUserRegistration();
                     setupWelcomeReward();
                 }
                 if (data.cases) allCases = data.cases;
@@ -1463,6 +1640,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(e => {
             console.log("Offline / default rejim:", e);
+            checkUserRegistration();
             updateUI();
             renderCases();
             renderLiveMarquee();
