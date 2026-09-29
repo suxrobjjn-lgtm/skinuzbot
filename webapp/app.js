@@ -1051,22 +1051,23 @@ function setupFortuneWheel() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
 
-    // 7 ta sektor (Audio xabarda aytilgan talablarga 100% mos):
-    // 0: 30 000 Olmos (Asosiy bosh sovrin)
-    // 1: +50% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
-    // 2: 5 000 Olmos
-    // 3: +100% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
-    // 4: 2 000 Olmos
-    // 5: +200% Depozit bonusi (Birinchi depozit uchun qo'shimcha olmos)
-    // 6: Bankrot
+    // 12 ta sektor:
+    // 3 ta Bankrot (3, 7, 11)
+    // 6 ta pul yutug'i: 2 ta 5 mln (0, 6), 2 ta 10 mln (2, 8), 2 ta 15 mln (4, 10)
+    // 3 ta depozit bonusi: +25% (1), +50% (5), +75% (9)
     const sectors = [
-        { index: 0, label: "30 000", sub: "OLMOS", icon: "⭐", bg: ["#f59e0b", "#b45309"], textColor: "#ffffff", isJackpot: true },
-        { index: 1, label: "+50%", sub: "DEPOZIT", icon: "🎁", bg: ["#06b6d4", "#0e7490"], textColor: "#ffffff" },
-        { index: 2, label: "5 000", sub: "OLMOS", icon: "💎", bg: ["#a855f7", "#6b21a8"], textColor: "#ffffff" },
-        { index: 3, label: "+100%", sub: "DEPOZIT", icon: "🎁", bg: ["#3b82f6", "#1d4ed8"], textColor: "#ffffff" },
-        { index: 4, label: "2 000", sub: "OLMOS", icon: "💎", bg: ["#10b981", "#047857"], textColor: "#ffffff" },
-        { index: 5, label: "+200%", sub: "DEPOZIT", icon: "🎁", bg: ["#ec4899", "#be185d"], textColor: "#ffffff" },
-        { index: 6, label: "BANKROT", sub: "0", icon: "💀", bg: ["#27272a", "#18181b"], textColor: "#ef4444", isBankrupt: true }
+        { index: 0, label: "5 MLN", sub: "SO'M", icon: "💵", bg: ["#10b981", "#047857"], textColor: "#ffffff" },
+        { index: 1, label: "+25%", sub: "DEPOZIT", icon: "🎁", bg: ["#06b6d4", "#0e7490"], textColor: "#ffffff" },
+        { index: 2, label: "10 MLN", sub: "SO'M", icon: "💰", bg: ["#3b82f6", "#1d4ed8"], textColor: "#ffffff" },
+        { index: 3, label: "BANKROT", sub: "0", icon: "💀", bg: ["#27272a", "#18181b"], textColor: "#ef4444", isBankrupt: true },
+        { index: 4, label: "15 MLN", sub: "SO'M", icon: "👑", bg: ["#f59e0b", "#b45309"], textColor: "#ffffff", isJackpot: true },
+        { index: 5, label: "+50%", sub: "DEPOZIT", icon: "🎁", bg: ["#8b5cf6", "#6d28d9"], textColor: "#ffffff" },
+        { index: 6, label: "5 MLN", sub: "SO'M", icon: "💵", bg: ["#059669", "#065f46"], textColor: "#ffffff" },
+        { index: 7, label: "BANKROT", sub: "0", icon: "💀", bg: ["#27272a", "#18181b"], textColor: "#ef4444", isBankrupt: true },
+        { index: 8, label: "10 MLN", sub: "SO'M", icon: "💰", bg: ["#2563eb", "#1e40af"], textColor: "#ffffff" },
+        { index: 9, label: "+75%", sub: "DEPOZIT", icon: "🎁", bg: ["#ec4899", "#be185d"], textColor: "#ffffff" },
+        { index: 10, label: "15 MLN", sub: "SO'M", icon: "⭐", bg: ["#eab308", "#ca8a04"], textColor: "#ffffff", isJackpot: true },
+        { index: 11, label: "BANKROT", sub: "0", icon: "💀", bg: ["#27272a", "#18181b"], textColor: "#ef4444", isBankrupt: true }
     ];
 
     const numSectors = sectors.length;
@@ -1077,7 +1078,7 @@ function setupFortuneWheel() {
     // LED yoritgichlar halqasini hosil qilamiz
     const lightsContainer = document.getElementById("wheelLightsRing");
     if (lightsContainer && lightsContainer.children.length === 0) {
-        const numLights = 14;
+        const numLights = 24;
         for (let i = 0; i < numLights; i++) {
             const dot = document.createElement("div");
             dot.className = "wheel-light-dot";
@@ -1137,21 +1138,21 @@ function setupFortuneWheel() {
 
             // Ikonka
             ctx.textAlign = "right";
-            ctx.font = "20px 'Segoe UI Emoji', sans-serif";
-            ctx.fillText(sec.icon, radius - 12, 5);
+            ctx.font = "18px 'Segoe UI Emoji', sans-serif";
+            ctx.fillText(sec.icon, radius - 10, 4);
 
             // Asosiy yozuv
             ctx.fillStyle = sec.textColor;
-            ctx.font = "900 13px 'Rajdhani', sans-serif";
+            ctx.font = "900 12px 'Rajdhani', sans-serif";
             ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
             ctx.shadowBlur = 4;
-            ctx.fillText(sec.label, radius - 38, 5);
+            ctx.fillText(sec.label, radius - 34, 4);
 
-            // Subyozuv (OLMOS / DEPOZIT)
+            // Subyozuv (SO'M / DEPOZIT)
             if (sec.sub && !sec.isBankrupt) {
-                ctx.font = "800 9px 'Rajdhani', sans-serif";
+                ctx.font = "800 8px 'Rajdhani', sans-serif";
                 ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-                ctx.fillText(sec.sub, radius - 38, 16);
+                ctx.fillText(sec.sub, radius - 34, 14);
             }
 
             ctx.restore();
@@ -1307,15 +1308,16 @@ function showWheelResult(prize) {
     const descEl = document.getElementById("wheelResultDesc");
     const actionBtn = document.getElementById("btnWheelResultAction");
 
-    if (prize.type === "diamonds") {
-        if (iconEl) iconEl.innerText = prize.amount >= 30000 ? "🌟" : "💎";
-        if (titleEl) titleEl.innerText = prize.amount >= 30000 ? "KATTA JACKPOT!" : "TABRIKLAYMIZ!";
+    if (prize.type === "cash" || prize.type === "diamonds") {
+        const isBig = (prize.amount >= 10000000);
+        if (iconEl) iconEl.innerText = isBig ? "👑" : "💰";
+        if (titleEl) titleEl.innerText = isBig ? "KATTA PUL YUTUG'I!" : "TABRIKLAYMIZ!";
         if (prizeEl) {
-            prizeEl.innerText = `${prize.amount.toLocaleString()} OLMOS`;
+            prizeEl.innerText = prize.label;
             prizeEl.style.borderColor = "#f59e0b";
             prizeEl.style.color = "#ffd32a";
         }
-        if (descEl) descEl.innerText = `Siz ${prize.amount.toLocaleString()} Olmos yutib oldingiz! Mablag' darhol o'yin balansingizga qo'shildi.`;
+        if (descEl) descEl.innerText = `Siz ${prize.label} yutib oldingiz! Mablag' darhol hisobingizga qo'shildi.`;
         if (actionBtn) {
             actionBtn.innerHTML = `<span>KEYSLARNI OCHISH 🎮</span>`;
             actionBtn.onclick = () => {
@@ -1331,7 +1333,7 @@ function showWheelResult(prize) {
             prizeEl.style.borderColor = "#3b82f6";
             prizeEl.style.color = "#60a5fa";
         }
-        if (descEl) descEl.innerText = `Siz birinchi hisob to'ldirishingiz uchun +${prize.amount}% qo'shimcha olmos bonusi yutib oldingiz!`;
+        if (descEl) descEl.innerText = `Siz birinchi hisob to'ldirishingiz uchun +${prize.amount}% qo'shimcha depozit bonusi yutib oldingiz!`;
         if (actionBtn) {
             actionBtn.innerHTML = `<span>BALANS TO'LDIRISH 💳</span>`;
             actionBtn.onclick = () => {
@@ -1345,7 +1347,7 @@ function showWheelResult(prize) {
         if (iconEl) iconEl.innerText = "💀";
         if (titleEl) titleEl.innerText = "BANKROT!";
         if (prizeEl) {
-            prizeEl.innerText = "0 OLMOS";
+            prizeEl.innerText = "0 SO'M";
             prizeEl.style.borderColor = "#ef4444";
             prizeEl.style.color = "#ef4444";
         }
