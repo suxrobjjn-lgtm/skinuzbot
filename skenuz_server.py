@@ -78,7 +78,7 @@ def get_phone_keyboard():
 
 REGISTRATION_REQUIRED_TEXT = (
     "⚠️ <b>Botdan to'liq foydalanish va o'yinlarni boshlash uchun ro'yxatdan o'tish majburiy!</b>\n\n"
-    "🎁 Ro'yxatdan o'tganingizdan so'ng <b>Omad Barabani</b> ochiladi va <b>30 000 Olmosgacha</b> yutib olishingiz mumkin!\n\n"
+    "🎁 Ro'yxatdan o'tganingizdan so'ng <b>Omad Barabani</b> ochiladi va <b>15 000 000 SO'Mgacha</b> pul yutug'i yoki depozit bonuslarini yutib olishingiz mumkin!\n\n"
     "📱 Davom etish uchun quyidagi tugma orqali <b>telefon raqamingizni</b> yuboring:"
 )
 
@@ -105,7 +105,7 @@ async def cmd_start(message: Message):
             welcome_text = (
                 f"👋 <b>Assalomu alaykum, {message.from_user.first_name}!</b>\n\n"
                 f"🎰 <b>Siz uchun Omad Barabani tayyor!</b>\n\n"
-                f"Barabanni aylantiring va <b>30 000 Olmos</b>, depozit bonuslari yoki boshqa qimmatbaho sovg'alarni yutib oling!\n\n"
+                f"Barabanni aylantiring va <b>15 000 000 SO'M</b>, pul yutuqlari yoki depozit bonuslarini yutib oling!\n\n"
                 f"👇 <i>Barabanni aylantirish uchun quyidagi tugmani bosing:</i>"
             )
             await message.answer(welcome_text, reply_markup=get_wheel_keyboard())
@@ -186,7 +186,7 @@ async def handle_contact(message: Message):
         await message.answer("✅ <b>Tabriklaymiz! Siz ro'yxatdan muvaffaqiyatli o'tdingiz!</b>", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
         welcome_text = (
             f"🎰 <b>Siz uchun Omad Barabani tayyor!</b>\n\n"
-            f"Barabanni aylantiring va <b>30 000 Olmos</b>, birinchi depozit bonuslari yoki boshqa yutuqlarga ega bo'ling!\n\n"
+            f"Barabanni aylantiring va <b>15 000 000 SO'M</b>, pul yutuqlari yoki birinchi depozit bonuslariga ega bo'ling!\n\n"
             f"👇 <i>Barabanni aylantirish uchun quyidagi tugmani bosing:</i>"
         )
         await message.answer(welcome_text, reply_markup=get_wheel_keyboard())
