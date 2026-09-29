@@ -513,16 +513,22 @@ def spin_wheel(tg_id: int):
 
     if row.get("wheel_spun") == 1:
         conn.close()
-        return False, "Siz omad barabanini allaqachon aylantirgansiz!", None, row.get("balance", 0.0), row.get("wheel_prize")
-
+        return False, "Siz omad barabanini allaqachon aylantirgansiz!", None, row.get("balance", 0.0), row.get("wheel_prize")    # 12 ta sektor:
+    # 3 ta Bankrot, 6 ta pul yutug'i (2x5 mln, 2x10 mln, 2x15 mln SO'M), 3 ta depozit bonusi (+25%, +50%, +75%)
+    # "Asosan pul yutuq tushadi" qoidasi bo'yicha: 85% pul yutug'i, 9% depozit bonusi, 6% bankrot
     sectors = [
-        {"index": 0, "type": "diamonds", "amount": 30000, "label": "30 000 Olmos", "weight": 5, "usd": 2.40},
-        {"index": 1, "type": "bonus", "amount": 50, "label": "+50% Depozit bonusi", "weight": 25, "usd": 0.0},
-        {"index": 2, "type": "diamonds", "amount": 5000, "label": "5 000 Olmos", "weight": 20, "usd": 0.40},
-        {"index": 3, "type": "bonus", "amount": 100, "label": "+100% Depozit bonusi", "weight": 20, "usd": 0.0},
-        {"index": 4, "type": "diamonds", "amount": 2000, "label": "2 000 Olmos", "weight": 20, "usd": 0.16},
-        {"index": 5, "type": "bonus", "amount": 200, "label": "+200% Depozit bonusi", "weight": 5, "usd": 0.0},
-        {"index": 6, "type": "bankrupt", "amount": 0, "label": "Bankrot", "weight": 5, "usd": 0.0},
+        {"index": 0, "type": "cash", "amount": 5000000, "label": "5 000 000 SO'M", "weight": 25, "usd": 50.0},
+        {"index": 1, "type": "bonus", "amount": 25, "label": "+25% Depozit bonusi", "weight": 4, "usd": 0.0},
+        {"index": 2, "type": "cash", "amount": 10000000, "label": "10 000 000 SO'M", "weight": 20, "usd": 100.0},
+        {"index": 3, "type": "bankrupt", "amount": 0, "label": "Bankrot", "weight": 2, "usd": 0.0},
+        {"index": 4, "type": "cash", "amount": 15000000, "label": "15 000 000 SO'M", "weight": 8, "usd": 150.0},
+        {"index": 5, "type": "bonus", "amount": 50, "label": "+50% Depozit bonusi", "weight": 3, "usd": 0.0},
+        {"index": 6, "type": "cash", "amount": 5000000, "label": "5 000 000 SO'M", "weight": 20, "usd": 50.0},
+        {"index": 7, "type": "bankrupt", "amount": 0, "label": "Bankrot", "weight": 2, "usd": 0.0},
+        {"index": 8, "type": "cash", "amount": 10000000, "label": "10 000 000 SO'M", "weight": 10, "usd": 100.0},
+        {"index": 9, "type": "bonus", "amount": 75, "label": "+75% Depozit bonusi", "weight": 2, "usd": 0.0},
+        {"index": 10, "type": "cash", "amount": 15000000, "label": "15 000 000 SO'M", "weight": 2, "usd": 150.0},
+        {"index": 11, "type": "bankrupt", "amount": 0, "label": "Bankrot", "weight": 2, "usd": 0.0},
     ]
 
     import random
